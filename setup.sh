@@ -134,7 +134,8 @@ setup_multilepton() {
     export CF_CONDA_BASE="${CF_CONDA_BASE:-${CF_SOFTWARE_BASE}/conda}"
     export CF_VENV_BASE="${CF_VENV_BASE:-${CF_SOFTWARE_BASE}/venvs}"
     export CF_CMSSW_BASE="${CF_CMSSW_BASE:-${CF_SOFTWARE_BASE}/cmssw}"
-
+    export CF_MAMBA_BASE="$CF_CONDA_BASE/bin/micromamba"
+ 
     #
     # common variables
     #
