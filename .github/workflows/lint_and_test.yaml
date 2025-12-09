@@ -20,103 +20,12 @@ jobs:
         with:
           python-version: 3.9
 
-      - name: Prepare setup directory
-        run: |
-          mkdir -p .setups
-          # Create a default setup file
-          cat > .setups/githubtest.sh << 'EOF'
-          export CF_CERN_USER="github"
-          export CF_DATA="$CF_REPO_BASE/columnflow_venv"
-          export CF_SOFTWARE_BASE="$CF_DATA/software"
-          export CF_VENV_BASE="$CF_SOFTWARE_BASE/venvs"
-          export CF_JOB_BASE="$CF_SOFTWARE_BASE/data/jobs"
-          export CF_STORE_NAME="cf_store"
-          export CF_STORE_LOCAL="$CF_REPO_BASE/data/$CF_STORE_NAME"
-          export CF_WLCG_CACHE_ROOT=""
-          export CF_VENV_SETUP_MODE_UPDATE="false"
-          export CF_INTERACTIVE_VENV_FILE=""
-          export CF_LOCAL_SCHEDULER="true"
-          export CF_FLAVOR="cms"
-          export CF_REMOTE_ENV="true"
-          EOF
-
-        #- name: Install micromamba
-        #- run: |
-        #-   export CF_REPO_BASE="$PWD"
-        #-   export CF_SOFTWARE_BASE="$CF_REPO_BASE/columnflow_venv/software"
-        #-   export CF_CONDA_BASE="$CF_SOFTWARE_BASE/conda"
-        #-   
-        #-   echo "=== Creating directory structure ==="
-        #-   mkdir -p "$CF_CONDA_BASE/etc/profile.d"
-        #-   mkdir -p "$CF_CONDA_BASE/bin"
-        #-   
-        #-   echo "=== Downloading micromamba ==="
-        #-   cd "$CF_CONDA_BASE/bin"
-        #-   curl -Ls "https://micro.mamba.pm/api/micromamba/linux-64/latest" | tar -xvj "bin/micromamba"
-        #-   chmod +x micromamba
-        #-   cd "$CF_REPO_BASE"
-        #-   
-        #-   echo "=== Creating micromamba.sh like columnflow does ==="
-        #-   # Let columnflow create the micromamba.sh file
-        #-   "$CF_CONDA_BASE/bin/micromamba" shell hook -y --shell bash --root-prefix "$CF_CONDA_BASE" > "$CF_CONDA_BASE/etc/profile.d/micromamba.sh" 2>&1
-        #-   
-        #-   # If that failed, create a simple one
-        #-   if [ ! -s "$CF_CONDA_BASE/etc/profile.d/micromamba.sh" ]; then
-        #-     cat > "$CF_CONDA_BASE/etc/profile.d/micromamba.sh" << 'EOF'
-        #-   #!/bin/bash
-        #-   export MAMBA_ROOT_PREFIX="$CF_CONDA_BASE"
-        #-   export MAMBA_EXE="$MAMBA_ROOT_PREFIX/bin/micromamba"
-        #-   export PATH="$MAMBA_ROOT_PREFIX/bin:$PATH"
-        #-   
-        #-   __mamba_activate() {
-        #-       eval "$($MAMBA_EXE shell --shell bash "$@")"
-        #-   }
-        #-   
-        #-   micromamba() {
-        #-       local cmd="${1-__missing__}"
-        #-       case "$cmd" in
-        #-           activate|deactivate|shell)
-        #-               __mamba_activate "$@"
-        #-               ;;
-        #-           *)
-        #-               $MAMBA_EXE "$@"
-        #-               ;;
-        #-       esac
-        #-   }
-        #-   
-        #-   export -f micromamba 2>/dev/null || true
-        #-   EOF
-        #-   fi
-        #-   
-        #-   chmod +x "$CF_CONDA_BASE/etc/profile.d/micromamba.sh"
-        #-   
-        #-   echo "=== Testing ==="
-        #-   source "$CF_CONDA_BASE/etc/profile.d/micromamba.sh"
-        #-   micromamba --version
-
       - name: Install dependencies ☕️
         run: |
-          export CI="true"
-          export GITHUB_ACTIONS="true"
-          export CF_REMOTE_ENV="true"
-          export CF_SETUP_NAME="github_actions"
-          export CF_REPO_BASE=$PWD
-          export CF_BASE="$CF_REPO_BASE/modules/columnflow"
-          export CF_SOFTWARE_BASE="$CF_REPO_BASE/columnflow_venv/software"
-          export CF_SKIP_SETUP="false"
-          export CF_REPO_BASE_ALIAS="MULTILEPTON_BASE"
-          export CF_LOCAL_ENV="true"
-          export MAMBA_ROOT_PREFIX="$CF_SOFTWARE_BASE/conda"
-          export MAMBA_EXE="$MAMBA_ROOT_PREFIX/bin/micromamba"
-          export PATH="$MAMBA_ROOT_PREFIX/bin:$PATH"
-          
-          which micromamba || echo "micromamba not found"
-          micromamba --version || echo "Failed to get micromamba version"
- 
-          echo "Running full setup..."
-          source setup.sh "githubtest"
- 
+          source setup.sh ""
+
       - name: Lint 🔍
         run: |
-          source setup.sh "githubtest"
+          source setup.sh ""
           ./tests/run_linting
+
