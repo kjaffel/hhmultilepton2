@@ -20,18 +20,42 @@ jobs:
         with:
           python-version: 3.9
 
+      - name: Prepare setup directory
+        run: |
+          mkdir -p .setups
+          # Create a default setup file
+          cat > .setups/default.sh << 'EOF'
+          export CF_CERN_USER="github"
+          export CF_DATA="$PWD/data"
+          export CF_SOFTWARE_BASE="$PWD/columnflow_venv/software"
+          export CF_JOB_BASE="$PWD/data/jobs"
+          export CF_STORE_NAME="cf_store"
+          export CF_STORE_LOCAL="$PWD/data/cf_store"
+          export CF_WLCG_CACHE_ROOT=""
+          export CF_VENV_SETUP_MODE_UPDATE="false"
+          export CF_INTERACTIVE_VENV_FILE=""
+          export CF_LOCAL_SCHEDULER="true"
+          export CF_FLAVOR="cms"
+          export CF_REMOTE_ENV="true"
+          EOF
+
       - name: Install dependencies ☕️
         run: |
+          export CI="true"
+          export GITHUB_ACTIONS="true"
+          export CF_REMOTE_ENV="true"
           export CF_BASE="$PWD/modules/columnflow"
           export CF_REPO_BASE="$PWD"
           export CF_SETUP_NAME="github_actions"
           export CF_SOFTWARE_BASE="$PWD/columnflow_venv/software"
           
           echo "Running full setup..."
-          source "$CF_BASE/setup.sh" "" || true
-          source setup.sh ""
+          which micromamba
+          micromamba --version 
+          #source "$CF_BASE/setup.sh" "" || true
+          source setup.sh "githubtest"
 
       - name: Lint 🔍
         run: |
-          source setup.sh ""
+          source setup.sh "githubtest"
           ./tests/run_linting
