@@ -22,10 +22,12 @@ jobs:
 
       - name: Install dependencies ☕️
         run: |
+          export CF_SKIP_SETUP="false"
           source setup.sh ""
 
       - name: Lint 🔍
         run: |
+          export CF_SKIP_SETUP="false"
           source setup.sh ""
           ./tests/run_linting
 
