@@ -14,6 +14,7 @@ export CF_SCHEDULER_HOST="127.0.0.1"
 export CF_SCHEDULER_PORT="8082"
 export CF_FLAVOR="cms"
 export LAW_CMS_VO="cms"
+export CF_SKIP_SETUP="false"
 
 #===== on manivald ==========
 export CF_CRAB_STORAGE_ELEMENT="T2_EE_Estonia"

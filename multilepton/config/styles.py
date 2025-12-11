@@ -11,8 +11,8 @@ import order as od
 
 from copy import deepcopy
 from collections import defaultdict
-from columnflow.util import DotMap, try_int
 
+from columnflow.util import DotDict, try_int
 
 logger = law.logger.get_logger(__name__)
 
@@ -110,7 +110,7 @@ def apply_process_styles(config, process_key, process_data, group=None):
     return
 
 
-def stylize_processes(config: od.Config, datasets_cfg: DotMap) -> None:
+def stylize_processes(config: od.Config, datasets_cfg: DotDict) -> None:
     """
     Applies style and metadata (colors, labels, etc.)
     to each process from the datasets YAML.
