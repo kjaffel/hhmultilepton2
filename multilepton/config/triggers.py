@@ -79,8 +79,8 @@ trigger_bits = DotDict.wrap({
         "SingleTau": Bits(v14=512, v15="v14"),
         "SingleTauOrTauMet": Bits(v12=1024, v14="v12", v15="v14"),  # more general paths than SingleTau in v14
         "VBFDiTau": Bits(v14=1024, v15="v14"),
-        #"VBFpDoublePFTau_run2": Bits(v12=2048, v15="v14"),
-        #"VBFpDoublePFTau_run3": Bits(v12=4096, v15="v14"),  # warning: this trigger bit expects "ChargedIso" in the filter name, this does not correspond to our actual VBF filter name  # noqa
+        # "VBFpDoublePFTau_run2": Bits(v12=2048, v15="v14"),
+        # "VBFpDoublePFTau_run3": Bits(v12=4096, v15="v14"),  # warning: this trigger bit expects "ChargedIso" in the filter name, this does not correspond to our actual VBF filter name  # noqa
         "DiTau": Bits(v14=2048, v15="v14"),
         "DiPFJetAndDiTau": Bits(v12=8192, v15="v14"),
         "DiTauAndPFJet": Bits(v12=16384, v14="v12", v15="v14"),
