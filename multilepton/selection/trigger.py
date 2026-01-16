@@ -30,29 +30,6 @@ def trigger_selection(
     """
     HLT trigger path selection.
     """
-    # Trigger disabled
-    if getattr(self.config_inst.x, "disable_triggers", False):
-        n_events = len(events)
-
-        # create an empty fired_trigger_ids column (no triggers fired)
-        empty_ids = ak.Array([[]] * n_events)
-        events = set_ak_column(
-            events,
-            "fired_trigger_ids",
-            empty_ids,
-            value_type=np.int32,
-        )
-
-        return events, SelectionResult(
-            steps={
-                # every event passes the trigger step
-                "trigger": ak.ones_like(events.run, dtype=bool),
-            },
-            aux={
-                # keep expected keys to avoid downstream failures
-                "trigger_data": [],
-            },
-        )
 
     any_fired = False
     trigger_data = []
@@ -109,14 +86,13 @@ def trigger_selection(
     # store the fired trigger ids
     trigger_ids = ak.concatenate(trigger_ids, axis=1)
     events = set_ak_column(events, "fired_trigger_ids", trigger_ids, value_type=np.int32)
+    # If triggers are disabled let everything pass
+    if getattr(self.config_inst.x, "disable_triggers", False):
+        any_fired = ak.ones_like(events.run, dtype=bool)
 
     return events, SelectionResult(
-        steps={
-            "trigger": any_fired,
-        },
-        aux={
-            "trigger_data": trigger_data,
-        },
+        steps={"trigger": any_fired},
+        aux={"trigger_data": trigger_data},
     )
 
 
