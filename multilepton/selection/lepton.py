@@ -1037,7 +1037,7 @@ def lepton_selection(
                     (ak.sum(ch_tau_mask, axis=1) == 0)
                 )
                 if not disable_triggers:
-                    base_ok = base_ok and fired
+                    base_ok = base_ok & fired
 
                 ok = ak.where(base_ok, ok, False)
 
@@ -1067,7 +1067,7 @@ def lepton_selection(
                     (ak.sum(ch_tau_mask, axis=1) == 0)
                 )
                 if not disable_triggers:
-                    base_ok = base_ok and fired
+                    base_ok = base_ok & fired
 
                 ok = ak.where(base_ok, ok, False)
 
@@ -1098,7 +1098,7 @@ def lepton_selection(
                     (ak.sum(ch_tau_mask, axis=1) == 0)
                 )
                 if not disable_triggers:
-                    base_ok = base_ok and fired
+                    base_ok = base_ok & fired
 
                 ok = ak.where(base_ok, ok, False)
 
@@ -1143,7 +1143,7 @@ def lepton_selection(
                     (ak.sum(ch_tau_mask, axis=1) == 0)
                 )
                 if not disable_triggers:
-                    base_ok = base_ok and fired
+                    base_ok = base_ok & fired
 
                 ok = ak.where(base_ok, ok, False)
 
@@ -1187,7 +1187,7 @@ def lepton_selection(
                     (ak.sum(ch_tau_mask, axis=1) == 0)
                 )
                 if not disable_triggers:
-                    base_ok = base_ok and fired
+                    base_ok = base_ok & fired
 
                 ok = ak.where(base_ok, ok, False)
 
@@ -1217,7 +1217,7 @@ def lepton_selection(
                     (ak.sum(ch_tau_mask, axis=1) == 0)
                 )
                 if not disable_triggers:
-                    base_ok = base_ok and fired
+                    base_ok = base_ok & fired
 
                 ok = ak.where(base_ok, ok, False)
 
@@ -1248,7 +1248,7 @@ def lepton_selection(
                     (ak.sum(ch_tau_mask, axis=1) == 0)
                 )
                 if not disable_triggers:
-                    base_ok = base_ok and fired
+                    base_ok = base_ok & fired
 
                 ok = ak.where(base_ok, ok, False)
 
@@ -1293,7 +1293,7 @@ def lepton_selection(
                     (ak.sum(ch_tau_mask, axis=1) == 0)
                 )
                 if not disable_triggers:
-                    base_ok = base_ok and fired
+                    base_ok = base_ok & fired
 
                 ok = ak.where(base_ok, ok, False)
 
@@ -1338,7 +1338,7 @@ def lepton_selection(
                     (ak.sum(ch_tau_mask, axis=1) == 0)
                 )
                 if not disable_triggers:
-                    base_ok = base_ok and fired
+                    base_ok = base_ok & fired
 
                 ok = ak.where(base_ok, ok, False)
 
@@ -1389,7 +1389,7 @@ def lepton_selection(
                     (ak.sum(ch_tau_mask, axis=1) == 1)
                 )
                 if not disable_triggers:
-                    base_ok = base_ok and fired
+                    base_ok = base_ok & fired
 
                 ok = ak.where(base_ok, ok, False)
 
@@ -1437,7 +1437,7 @@ def lepton_selection(
                     (ak.sum(ch_tau_mask, axis=1) == 2)
                 )
                 if not disable_triggers:
-                    base_ok = base_ok and fired
+                    base_ok = base_ok & fired
 
                 ok = ak.where(base_ok, ok, False)
 
@@ -1487,7 +1487,7 @@ def lepton_selection(
                     (ak.sum(ch_tau_mask, axis=1) == 3)
                 )
                 if not disable_triggers:
-                    base_ok = base_ok and fired
+                    base_ok = base_ok & fired
 
                 ok = ak.where(base_ok, ok, False)
 
@@ -1535,7 +1535,7 @@ def lepton_selection(
                     (ak.sum(ch_tau_mask, axis=1) == 1)
                 )
                 if not disable_triggers:
-                    base_ok = base_ok and fired
+                    base_ok = base_ok & fired
 
                 ok = ak.where(base_ok, ok, False)
 
@@ -1584,7 +1584,7 @@ def lepton_selection(
                     (ak.sum(ch_tau_mask, axis=1) == 2)
                 )
                 if not disable_triggers:
-                    base_ok = base_ok and fired
+                    base_ok = base_ok & fired
 
                 ok = ak.where(base_ok, ok, False)
 
@@ -1634,7 +1634,7 @@ def lepton_selection(
                     (ak.sum(ch_tau_mask, axis=1) == 3)
                 )
                 if not disable_triggers:
-                    base_ok = base_ok and fired
+                    base_ok = base_ok & fired
 
                 ok = ak.where(base_ok, ok, False)
 
@@ -1683,7 +1683,7 @@ def lepton_selection(
                     (ak.sum(ch_tau_mask, axis=1) == 1)
                 )
                 if not disable_triggers:
-                    base_ok = base_ok and fired
+                    base_ok = base_ok & fired
 
                 ok = ak.where(base_ok, ok, False)
 
@@ -1753,7 +1753,7 @@ def lepton_selection(
                     (ak.sum(ch_tau_mask, axis=1) == 1)
                 )
                 if not disable_triggers:
-                    base_ok = base_ok and fired
+                    base_ok = base_ok & fired
 
                 ok = ak.where(base_ok, ok, False)
 
@@ -1823,7 +1823,7 @@ def lepton_selection(
                     (ak.sum(ch_tau_mask, axis=1) == 2)
                 )
                 if not disable_triggers:
-                    base_ok = base_ok and fired
+                    base_ok = base_ok & fired
 
                 ok = ak.where(base_ok, ok, False)
 
@@ -1893,7 +1893,7 @@ def lepton_selection(
                     (ak.sum(ch_tau_mask, axis=1) == 4)
                 )
                 if not disable_triggers:
-                    base_ok = base_ok and fired
+                    base_ok = base_ok & fired
 
                 ok = ak.where(base_ok, ok, False)
 
@@ -1931,7 +1931,7 @@ def lepton_selection(
                     (ak.sum(ch_tau_mask, axis=1) <= 1)
                 )
                 if not disable_triggers:
-                    base_ok = base_ok and fired
+                    base_ok = base_ok & fired
 
                 ok = ak.where(base_ok, ok, False)
 
@@ -1970,7 +1970,7 @@ def lepton_selection(
                     (ak.sum(ch_tau_mask, axis=1) <= 1)
                 )
                 if not disable_triggers:
-                    base_ok = base_ok and fired
+                    base_ok = base_ok & fired
 
                 ok = ak.where(base_ok, ok, False)
 
@@ -2010,7 +2010,7 @@ def lepton_selection(
                     (ak.sum(ch_tau_mask, axis=1) <= 1)
                 )
                 if not disable_triggers:
-                    base_ok = base_ok and fired
+                    base_ok = base_ok & fired
 
                 ok = ak.where(base_ok, ok, False)
 
