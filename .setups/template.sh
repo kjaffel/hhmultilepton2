@@ -30,7 +30,7 @@ export TMPDIR="/scratch/local/$CF_CERN_USER"
 #===== on lxplus ============
 #export WLCG_FILE_SYSTEM="wlcg_fs_cernbox"
 #export CF_CRAB_STORAGE_ELEMENT="T2_CH_CERN"
-#export CF_CRAB_BASE_DIRECTORY="$CF_CLUSTER_LOCAL_PATH/cf_crab_outputs"
+#export CF_CRAB_BASE_DIRECTORY="/store/user/$CF_CERN_USER/HHMultilepton_Run3/cf_crab_outputs"
 #export CF_CRAB_SANDBOX_NAME="CMSSW_14_2_1::arch=el9_amd64_gcc21"
 export CF_HTCONDOR_FLAVOR="cern_el9"   # or "cern" for older versions of lxplus not using ELMA9
 export CF_HTCONDOR_MEMORY=2GB
