@@ -416,6 +416,10 @@ channels:
   c2mu0or1tau: 
     id: 35
     label: "$\\mu\\mu, \\leq 1\\ \\tau_{h}$"
+  ceormu: 
+    id: 10000
+    label: "$e or \\mu$"
+    tags: "ceormu"
     # ... add other channels
 
 plot_defaults:

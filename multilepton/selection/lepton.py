@@ -729,26 +729,26 @@ def lepton_selection(
     for ch_key, spec in channels.items():
 
         # eormu -> set trig_ids to any particular trigger, so that eormu does not run over all triggers
-        if ch_key in {"eormu"}:
+        if ch_key in {"ceormu"}:
             if self.dataset_inst.is_mc:
                 trig_ids = single_e_tids
             else:
                 continue
 
         # 3l0th + 3l1th + 4l: single, double, and triple lepton triggers
-        elif ch_key in {"3e", "4e", "3etau"}:
+        elif ch_key in {"c3e", "c4e", "c3etau"}:
             if self.dataset_inst.is_mc or self.dataset_inst.has_tag("ee"):
                 trig_ids = single_e_tids + double_e_tids + triple_e_tids
             else:
                 continue
 
-        elif ch_key in {"3mu", "4mu", "3mutau"}:
+        elif ch_key in {"c3mu", "c4mu", "c3mutau"}:
             if self.dataset_inst.is_mc or self.dataset_inst.has_tag("mumu"):
                 trig_ids = single_mu_tids + double_mu_tids + triple_mu_tids
             else:
                 continue
 
-        elif ch_key in {"2e2mu"}:
+        elif ch_key in {"c2e2mu"}:
             if self.dataset_inst.is_mc:
                 trig_ids = (single_e_tids + single_mu_tids + double_e_tids + double_mu_tids +
                             double_emu_tids + triple_eemu_tids + triple_emumu_tids)
@@ -765,7 +765,7 @@ def lepton_selection(
             else:
                 continue
 
-        elif ch_key in {"3emu"}:
+        elif ch_key in {"c3emu"}:
             if self.dataset_inst.is_mc:
                 trig_ids = (single_e_tids + single_mu_tids + double_e_tids +
                             double_emu_tids + triple_e_tids + triple_eemu_tids)
@@ -780,7 +780,7 @@ def lepton_selection(
             else:
                 continue
 
-        elif ch_key in {"e3mu"}:
+        elif ch_key in {"ce3mu"}:
             if self.dataset_inst.is_mc:
                 trig_ids = (single_e_tids + single_mu_tids + double_mu_tids +
                             double_emu_tids + triple_mu_tids + triple_emumu_tids)
@@ -795,7 +795,7 @@ def lepton_selection(
             else:
                 continue
 
-        elif ch_key in {"2emu", "2emutau"}:
+        elif ch_key in {"c2emu", "c2emutau"}:
             if self.dataset_inst.is_mc:
                 trig_ids = single_e_tids + single_mu_tids + double_e_tids + double_emu_tids + triple_eemu_tids
             elif self.dataset_inst.has_tag("mue"):
@@ -809,7 +809,7 @@ def lepton_selection(
             else:
                 continue
 
-        elif ch_key in {"e2mu", "e2mutau"}:
+        elif ch_key in {"ce2mu", "ce2mutau"}:
             if self.dataset_inst.is_mc:
                 trig_ids = single_e_tids + single_mu_tids + double_mu_tids + double_emu_tids + triple_emumu_tids
             elif self.dataset_inst.has_tag("mue"):
@@ -824,19 +824,19 @@ def lepton_selection(
                 continue
 
         # 2l2th + 2l0or1tau: single, double mixed lepton triggers
-        elif ch_key in {"2e2tau", "2e0or1tau"}:
+        elif ch_key in {"c2e2tau", "c2e0or1tau"}:
             if self.dataset_inst.is_mc or self.dataset_inst.has_tag("ee"):
                 trig_ids = single_e_tids + double_e_tids
             else:
                 continue
 
-        elif ch_key in {"2mu2tau", "2mu0or1tau"}:
+        elif ch_key in {"c2mu2tau", "c2mu0or1tau"}:
             if self.dataset_inst.is_mc or self.dataset_inst.has_tag("mumu"):
                 trig_ids = single_mu_tids + double_mu_tids
             else:
                 continue
 
-        elif ch_key in {"emu2tau", "emu0or1tau"}:
+        elif ch_key in {"cemu2tau", "cemu0or1tau"}:
             if self.dataset_inst.is_mc:
                 trig_ids = single_e_tids + single_mu_tids + double_emu_tids
             elif self.dataset_inst.has_tag("mue"):
@@ -849,7 +849,7 @@ def lepton_selection(
                 continue
 
         # 1l3th
-        elif ch_key in {"e3tau"}:
+        elif ch_key in {"ce3tau"}:
             if self.dataset_inst.is_mc:
                 trig_ids = single_e_tids + cross_e_tau + cross_tau_tau_any
             elif self.dataset_inst.has_tag("tautau"):
@@ -859,7 +859,7 @@ def lepton_selection(
             else:
                 continue
 
-        elif ch_key in {"mu3tau"}:
+        elif ch_key in {"cmu3tau"}:
             if self.dataset_inst.is_mc:
                 trig_ids = single_mu_tids + cross_mu_tau + cross_tau_tau_any
             elif self.dataset_inst.has_tag("tautau"):
@@ -869,7 +869,7 @@ def lepton_selection(
             else:
                 continue
 
-        elif ch_key in {"4tau"}:
+        elif ch_key in {"c4tau"}:
             if self.dataset_inst.is_mc or self.dataset_inst.has_tag("tautau"):
                 trig_ids = cross_tau_tau_any
             else:
@@ -911,7 +911,7 @@ def lepton_selection(
 
             ok = ak.ones_like(events.event, dtype=bool)
 
-            if ch_key == "eormu":
+            if ch_key == "ceormu":
 
                 e_base = (
                     (ak.sum(e_veto_bdt, axis=1) >= 1) &
@@ -949,7 +949,7 @@ def lepton_selection(
 
                 continue
 
-            elif ch_key == "3e":
+            elif ch_key == "c3e":
                 base_ok = (
                     (ak.sum(e_ctrl, axis=1) == 3) &
                     (ak.sum(e_veto, axis=1) == 3) &
@@ -979,7 +979,7 @@ def lepton_selection(
                 ids = ak.where(trig_match_ok, np.float32(tid), np.float32(np.nan))
                 matched_trigger_ids.append(ak.singletons(ak.nan_to_none(ids)))
 
-            elif ch_key == "3mu":
+            elif ch_key == "c3mu":
                 base_ok = (
                     (ak.sum(mu_ctrl, axis=1) == 3) &
                     (ak.sum(mu_veto, axis=1) == 3) &
@@ -1009,7 +1009,7 @@ def lepton_selection(
                 ids = ak.where(trig_match_ok, np.float32(tid), np.float32(np.nan))
                 matched_trigger_ids.append(ak.singletons(ak.nan_to_none(ids)))
 
-            elif ch_key == "2emu":
+            elif ch_key == "c2emu":
                 base_ok = (
                     (ak.sum(e_ctrl, axis=1) == 2) &
                     (ak.sum(e_veto, axis=1) == 2) &
@@ -1054,7 +1054,7 @@ def lepton_selection(
                 ids = ak.where(trig_match_ok, np.float32(tid), np.float32(np.nan))
                 matched_trigger_ids.append(ak.singletons(ak.nan_to_none(ids)))
 
-            elif ch_key == "e2mu":
+            elif ch_key == "ce2mu":
                 base_ok = (
                     (ak.sum(e_ctrl, axis=1) == 1) &
                     (ak.sum(e_veto, axis=1) == 1) &
@@ -1099,7 +1099,7 @@ def lepton_selection(
                 ids = ak.where(trig_match_ok, np.float32(tid), np.float32(np.nan))
                 matched_trigger_ids.append(ak.singletons(ak.nan_to_none(ids)))
 
-            elif ch_key == "4e":
+            elif ch_key == "c4e":
                 base_ok = (
                     (ak.sum(e_ctrl, axis=1) == 4) &
                     (ak.sum(e_veto, axis=1) == 4) &
@@ -1129,7 +1129,7 @@ def lepton_selection(
                 ids = ak.where(trig_match_ok, np.float32(tid), np.float32(np.nan))
                 matched_trigger_ids.append(ak.singletons(ak.nan_to_none(ids)))
 
-            elif ch_key == "4mu":
+            elif ch_key == "c4mu":
                 base_ok = (
                     (ak.sum(mu_ctrl, axis=1) == 4) &
                     (ak.sum(mu_veto, axis=1) == 4) &
@@ -1159,7 +1159,7 @@ def lepton_selection(
                 ids = ak.where(trig_match_ok, np.float32(tid), np.float32(np.nan))
                 matched_trigger_ids.append(ak.singletons(ak.nan_to_none(ids)))
 
-            elif ch_key == "3emu":
+            elif ch_key == "c3emu":
                 base_ok = (
                     (ak.sum(e_ctrl, axis=1) == 3) &
                     (ak.sum(e_veto, axis=1) == 3) &
@@ -1204,7 +1204,7 @@ def lepton_selection(
                 ids = ak.where(trig_match_ok, np.float32(tid), np.float32(np.nan))
                 matched_trigger_ids.append(ak.singletons(ak.nan_to_none(ids)))
 
-            elif ch_key == "2e2mu":
+            elif ch_key == "c2e2mu":
                 base_ok = (
                     (ak.sum(e_ctrl, axis=1) == 2) &
                     (ak.sum(e_veto, axis=1) == 2) &
@@ -1249,7 +1249,7 @@ def lepton_selection(
                 ids = ak.where(trig_match_ok, np.float32(tid), np.float32(np.nan))
                 matched_trigger_ids.append(ak.singletons(ak.nan_to_none(ids)))
 
-            elif ch_key == "e3mu":
+            elif ch_key == "ce3mu":
                 base_ok = (
                     (ak.sum(e_ctrl, axis=1) == 1) &
                     (ak.sum(e_veto, axis=1) == 1) &
@@ -1294,7 +1294,7 @@ def lepton_selection(
                 ids = ak.where(trig_match_ok, np.float32(tid), np.float32(np.nan))
                 matched_trigger_ids.append(ak.singletons(ak.nan_to_none(ids)))
 
-            elif ch_key == "3etau":
+            elif ch_key == "c3etau":
                 ch_tau_mask = (
                     tau_mask &
                     (events.Tau[get_tau_tagger("e")] >= wp_config.tau_vs_e.vloose) &
@@ -1341,7 +1341,7 @@ def lepton_selection(
                 ids = ak.where(trig_match_ok, np.float32(tid), np.float32(np.nan))
                 matched_trigger_ids.append(ak.singletons(ak.nan_to_none(ids)))
 
-            elif ch_key == "2e2tau":
+            elif ch_key == "c2e2tau":
                 ch_tau_mask = (
                     tau_mask &
                     (events.Tau[get_tau_tagger("e")] >= wp_config.tau_vs_e.vloose) &
@@ -1390,7 +1390,7 @@ def lepton_selection(
                 ids = ak.where(trig_match_ok, np.float32(tid), np.float32(np.nan))
                 matched_trigger_ids.append(ak.singletons(ak.nan_to_none(ids)))
 
-            elif ch_key == "e3tau":
+            elif ch_key == "ce3tau":
                 ch_tau_mask = (
                     tau_mask &
                     (events.Tau[get_tau_tagger("e")] >= wp_config.tau_vs_e.vloose) &
@@ -1437,7 +1437,7 @@ def lepton_selection(
                 ids = ak.where(trig_match_ok, np.float32(tid), np.float32(np.nan))
                 matched_trigger_ids.append(ak.singletons(ak.nan_to_none(ids)))
 
-            elif ch_key == "3mutau":
+            elif ch_key == "c3mutau":
 
                 ch_tau_mask = (
                     tau_mask &
@@ -1486,7 +1486,7 @@ def lepton_selection(
                 ids = ak.where(trig_match_ok, np.float32(tid), np.float32(np.nan))
                 matched_trigger_ids.append(ak.singletons(ak.nan_to_none(ids)))
 
-            elif ch_key == "2mu2tau":
+            elif ch_key == "c2mu2tau":
                 ch_tau_mask = (
                     tau_mask &
                     (events.Tau[get_tau_tagger("e")] >= wp_config.tau_vs_e.vloose) &
@@ -1535,7 +1535,7 @@ def lepton_selection(
                 ids = ak.where(trig_match_ok, np.float32(tid), np.float32(np.nan))
                 matched_trigger_ids.append(ak.singletons(ak.nan_to_none(ids)))
 
-            elif ch_key == "mu3tau":
+            elif ch_key == "cmu3tau":
                 ch_tau_mask = (
                     tau_mask &
                     (events.Tau[get_tau_tagger("e")] >= wp_config.tau_vs_e.vloose) &
@@ -1582,7 +1582,7 @@ def lepton_selection(
                 ids = ak.where(trig_match_ok, np.float32(tid), np.float32(np.nan))
                 matched_trigger_ids.append(ak.singletons(ak.nan_to_none(ids)))
 
-            elif ch_key == "2emutau":
+            elif ch_key == "c2emutau":
                 ch_tau_mask = (
                     tau_mask &
                     (events.Tau[get_tau_tagger("e")] >= wp_config.tau_vs_e.vloose) &
@@ -1651,7 +1651,7 @@ def lepton_selection(
                 ids = ak.where(trig_match_ok, np.float32(tid), np.float32(np.nan))
                 matched_trigger_ids.append(ak.singletons(ak.nan_to_none(ids)))
 
-            elif ch_key == "e2mutau":
+            elif ch_key == "ce2mutau":
                 ch_tau_mask = (
                     tau_mask &
                     (events.Tau[get_tau_tagger("e")] >= wp_config.tau_vs_e.vloose) &
@@ -1720,7 +1720,7 @@ def lepton_selection(
                 ids = ak.where(trig_match_ok, np.float32(tid), np.float32(np.nan))
                 matched_trigger_ids.append(ak.singletons(ak.nan_to_none(ids)))
 
-            elif ch_key == "emu2tau":
+            elif ch_key == "cemu2tau":
                 ch_tau_mask = (
                     tau_mask &
                     (events.Tau[get_tau_tagger("e")] >= wp_config.tau_vs_e.vloose) &
@@ -1791,7 +1791,7 @@ def lepton_selection(
                 ids = ak.where(trig_match_ok, np.float32(tid), np.float32(np.nan))
                 matched_trigger_ids.append(ak.singletons(ak.nan_to_none(ids)))
 
-            elif ch_key == "4tau":
+            elif ch_key == "c4tau":
                 ch_tau_mask = (
                     tau_mask &
                     (events.Tau[get_tau_tagger("e")] >= wp_config.tau_vs_e.vvloose) &
@@ -1827,7 +1827,7 @@ def lepton_selection(
                 ids = ak.where(trig_match_ok, np.float32(tid), np.float32(np.nan))
                 matched_trigger_ids.append(ak.singletons(ak.nan_to_none(ids)))
 
-            elif ch_key == "2e0or1tau":
+            elif ch_key == "c2e0or1tau":
                 ch_tau_mask = (
                     tau_mask &
                     (events.Tau[get_tau_tagger("e")] >= wp_config.tau_vs_e.vloose) &
@@ -1865,7 +1865,7 @@ def lepton_selection(
                 ids = ak.where(trig_match_ok, np.float32(tid), np.float32(np.nan))
                 matched_trigger_ids.append(ak.singletons(ak.nan_to_none(ids)))
 
-            elif ch_key == "2mu0or1tau":
+            elif ch_key == "c2mu0or1tau":
                 ch_tau_mask = (
                     tau_mask &
                     (events.Tau[get_tau_tagger("e")] >= wp_config.tau_vs_e.vloose) &
@@ -1903,7 +1903,7 @@ def lepton_selection(
                 ids = ak.where(trig_match_ok, np.float32(tid), np.float32(np.nan))
                 matched_trigger_ids.append(ak.singletons(ak.nan_to_none(ids)))
 
-            elif ch_key == "emu0or1tau":
+            elif ch_key == "cemu0or1tau":
                 ch_tau_mask = (
                     tau_mask &
                     (events.Tau[get_tau_tagger("e")] >= wp_config.tau_vs_e.vloose) &

@@ -30,7 +30,6 @@ multileptons_categories = {
     "cat2l0or1tau_SB_SS": {"id": 1015, "selection": "cat_2l0or1tau_SB_SS", "label": r"$2\ell\  \leq 1\,\tau_{h}$ SB, SS"},  # noqa: E501
     "cat2l0or1tau_SB_OS": {"id": 1016, "selection": "cat_2l0or1tau_SB_OS", "label": r"$2\ell\  \leq 1\,\tau_{h}$ SB, OS"},  # noqa: E501
     # Loose category for BDT trainning + tight + trigmatch
-    "ceormu": {"id": 10000, "selection": "cat_e_or_mu", "label": r"e or $\mu$", "tags": {"ceormu"}},
     "ceormu_bveto": {"id": 15000, "selection": "cat_e_or_mu_bveto", "label": r"e or $\mu$ bveto on", "tags": {"ceormu_bveto"}},  # noqa: E501
     # bveto
     "bveto_on": {"id": 30001, "selection": "cat_bveto_on", "label": "bveto on"},
@@ -73,7 +72,7 @@ def add_categories(config: od.Config) -> None:
 
     # One category per existing channel
     for ch in config.channels:
-        _add_category(config, name=ch.name, id=ch.id, selection=f"cat_{ch.name[1:]}", label=ch.label)
+        _add_category(config, name=ch.name, id=ch.id, selection=f"cat_{ch.name[1:]}", label=ch.label, tags=ch.name)
     # Analysis-specific multilepton categories
     for name, cat in multileptons_categories.items():
         _add_category(

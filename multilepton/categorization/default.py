@@ -443,7 +443,7 @@ def cat_bveto_off(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Arr
 
 # The BDT category overlaps with our channels, so we need tight/trigger-matched flags individual for this cat
 @categorizer(uses={"ok_bdt_eormu"})
-def cat_e_or_mu(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
+def cat_eormu(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
     return events, events.ok_bdt_eormu == 1
 
 
