@@ -23,7 +23,6 @@ class MultileptonTask(BaseTask):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Pass the limit to BOTH analysis and config
         limit = int(self.limit_dataset_files)
         if limit > 0:
             # set at ANALYSIS level (affects all future configs)
@@ -44,10 +43,10 @@ class MultileptonTask(BaseTask):
                 if original > limit:
                     info.n_files = limit
                     modified = True
-                    # print(f"  Limited {dataset.name}: {original} events → {limit} events")
+                    # self.debug(f"  Limited {dataset.name}: {original} events → {limit} events")
 
         if not modified:
-            self.logger.warning(f"  No datasets needed limiting (all ≤ {limit})")
+            self.logger.warning(f"No datasets needed limiting (all ≤ {limit})")
 
 
 class GetDatasetLFNs(MultileptonTask, CFGetDatasetLFNs):
@@ -99,7 +98,7 @@ class GetDatasetLFNs(MultileptonTask, CFGetDatasetLFNs):
         return lfns
 
     def run(self):
-        self.logger.warning(f"Running with limit_dataset_files = {self.limit_dataset_files}")
+        self.logger.warning(f"Running GetDatasetLFNs with limit_dataset_files = {self.limit_dataset_files}")
         # Reset counters
         self._files_collected = 0
         self._limit = -1
@@ -129,5 +128,5 @@ class PlotVariables1D(MultileptonTask, CFPlotVariables1D):
         return reqs
 
     def run(self):
-        self.logger.warning(f"Running PlotVariables1D with limit={self.limit_dataset_files}")
+        self.logger.warning(f"Running PlotVariables1D with limit_dataset_files = {self.limit_dataset_files}")
         return super().run()
