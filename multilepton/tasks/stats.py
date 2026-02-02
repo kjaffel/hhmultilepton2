@@ -5,17 +5,15 @@ Tasks to print various statistics.
 import tabulate
 import functools
 import law
-
 from columnflow.tasks.framework.base import ConfigTask
-
 from multilepton.tasks.base import MultileptonTask
 from multilepton.tasks.parameters import table_format_param
 
 
 class ListDatasetStats(MultileptonTask, ConfigTask, law.tasks.RunOnceTask):
     single_config = True
-    table_format = table_format_param
     version = None
+    table_format = table_format_param
 
     def run(self):
         tabulate.PRESERVE_WHITESPACE = True

@@ -243,7 +243,6 @@ def add_config(
     campaign: od.Campaign,
     config_name: str | None = None,
     config_id: int | None = None,
-    limit_dataset_files: int | None = None,
 ) -> od.Config:
 
     # gather campaign data
@@ -515,7 +514,7 @@ def add_config(
         cfg.x.jet_trigger_corrector = "jetleg60"
         return cfg
 
-    def ConfigureLFNS(cfg, limit_dataset_files=None):
+    def ConfigureLFNS(cfg):
         """
         Configure custom methods for retrieving dataset LFNs depending on campaign settings.
         """
@@ -666,12 +665,11 @@ def add_config(
     cfg.x.btag_working_points = bTagWorkingPoints(year, run, campaign)
 
     ConfigureLuminosity(cfg, campaign, year, analysis_data)
-    ConfigureLFNS(cfg, limit_dataset_files)
+    ConfigureLFNS(cfg)
     ConfigureTaus(cfg, run, campaign)
     ConfigureElectrons(cfg, run, year, campaign)
     ConfigureMuons(cfg, run, year, campaign)
     ConfigureJets(cfg, year, run, campaign)
-
     # =============================================
     # processes and datasets - using YAML configuration
     # =============================================
@@ -718,9 +716,6 @@ def add_config(
                 dataset.add_tag("partial_lhe_weights")
             for tag in (t for t in law.util.make_set(tags) if t is not None):
                 dataset.add_tag(tag)
-            if limit_dataset_files:
-                for info in dataset.info.values():
-                    info.n_files = min(info.n_files, limit_dataset_files)
 
     # Add data
     streams = datasets_config["data"]["streams"]
@@ -774,9 +769,6 @@ def add_config(
                     # https://cms-talk.web.cern.ch/t/noise-met-filters-in-run-3/63346/5
                     if y == 2022 and dataset.is_data and dataset.x.era in "FG":
                         dataset.add_tag("broken_ecalBadCalibFilter")
-                    if limit_dataset_files:
-                        for info in dataset.info.values():
-                            info.n_files = min(info.n_files, limit_dataset_files)
 
     # verify that the root process of each dataset is part of any of the registered processes
     verify_config_processes(cfg, warn=True)
