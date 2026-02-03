@@ -125,7 +125,7 @@ class ProvideReducedEvents(MultileptonTask, CFProvideReducedEvents):
 
 class PlotVariables1D(MultileptonTask, CFPlotVariables1D):
     task_namespace = "ml"
-    
+
     limit_dataset_files = luigi.IntParameter(
         default=-1,
         significant=False,

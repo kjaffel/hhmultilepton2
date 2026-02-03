@@ -13,20 +13,20 @@ task=${inherit}.ProvideReducedEvents
 law run ${task} \
     --version onefile_test \
     --config 24_v15_central \
-    --dataset data_mu_i \
+    --dataset data_mu_e \
     --limit-dataset-files 1 \
-    --branch 0 \
+    --workflow slurm --retries 1 \
+    --parallel-jobs 300 \
     ${1} 
     
+    # --branch 0 \
     # --dataset dy_m50toinf_2j_pt600toinf_amcatnlo \
     # --producers default \
     # --variables nmu \
     # --categories ceormu \
     # --view-cmd imgcat \
     # --remove-output 10 \
-    # --workflow slurm --retries 1\
     # --workers 1 \
-    # --parallel-jobs 300 \
     # --print-status 2 \
 
     # FIXME to test out the functionality of these
