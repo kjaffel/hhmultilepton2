@@ -3,7 +3,7 @@
 **Table of contents**
 - [Introduction](#introduction)
 - [Installation (first time)](#first-time-setup)
-- [Submodules Management Guide (Columnflow and cmsdb)](#submodules-management-guide-columnflow-and-cmsdb)
+- [Submodules management guide (columnflow, law, order, and cmsdb)](#submodules-management-guide-columnflow-law-order-and-cmsdb)
 - [Usage](#usage)
 - [Useful links](#useful-links)
 - [Contributors](#contributors)
@@ -12,19 +12,28 @@
 
 ## Introduction
 
-This is the code base for the Run2+Run3 iteration of the CMS HH Multileptons analysis. Analysis based on [uhh-cms/columnflow](https://github.com/uhh-cms/columnflow), [law](https://github.com/riga/law) and [order](https://github.com/riga/order), also we use [uhh-cms/cmsdb](https://github.com/uhh-cms/cmsdb.git).
+This repository contains the code base for the **Run 2 + Run 3 iteration of the CMS HH Multileptons analysis**.
+The analysis is built on top of
+[uhh-cms/columnflow](https://github.com/uhh-cms/columnflow),
+[law](https://github.com/riga/law), and
+[order](https://github.com/riga/order),
+and also makes use of [uhh-cms/cmsdb](https://github.com/uhh-cms/cmsdb).
 
-The code is forked and for now heavily based on the UHH bersion of the [HH → bb𝜏𝜏 analysis](https://github.com/uhh-cms/hh2bbtautau)
-and still very much WIP. Expect remnants from the bb𝜏𝜏 analysis, crashes and bugs, you have been warned!
+The code is forked and currently **heavily based on the UHH version of the HH → bb𝜏𝜏 analysis**:
+[https://github.com/uhh-cms/hh2bbtautau](https://github.com/uhh-cms/hh2bbtautau)
 
-Please make sure you are subscribed to our e-group: cms-hh-multilepton@cern.ch
-It controls the acess to our indico etc. and is a good way to get updates for our meetings.
+It is still very much a **work in progress**. Expect leftover components from the bb𝜏𝜏 analysis, crashes, and bugs — you have been warned 🙂
 
-Also join our channel on [mattermost](https://mattermost.web.cern.ch/cms-exp/channels/hh-multilepton-run3).
-(You will need to join the CMS team first if not done so).
+Please make sure you are subscribed to the e-group:
+**[cms-hh-multilepton@cern.ch](mailto:cms-hh-multilepton@cern.ch)**
+The e-group controls access to Indico and is the primary channel for meeting announcements and updates.
 
-The code is currently developed with the Tallinn T2 (and lxplus) in mind.
-For further questions please, contact t\*\*\*\*.l\*\*\*\*@no-spam-cern.ch.
+You should also join our Mattermost channel:
+[https://mattermost.web.cern.ch/cms-exp/channels/hh-multilepton-run3](https://mattermost.web.cern.ch/cms-exp/channels/hh-multilepton-run3)
+(Note: you need to be a member of the CMS Mattermost team first.)
+
+The code is currently developed and tested with **Tallinn T2** and **lxplus** in mind.
+For further questions, please contact: [t****.l****@no-spam-cern.ch](t****.l****@no-spam-cern.ch)
 
 ## First time setup
 
@@ -65,7 +74,7 @@ When you run the command, the setup script will guide you interactively, prompti
 Code can now be run but first storage locations for the tasks outputs should be checked as configured [here](https://github.com/HEP-KBFI/hhmultilepton2/blob/main/.setups/template.sh#L21). Currently outputs point to the user store of the `T2_EE_Estonia on manivald` so that outputs are also accessible remotely, but we will likely adapt this over time depending on the output.
 I.e large outputs available in a remote reachable location, smaller ones on local stores. Larger ones likely also split by user/cluster so that central versions can be reused. Can be configuered [here](https://github.com/HEP-KBFI/hhmultilepton2/blob/main/law_outputs.cfg#L5).
 
-## Submodules Management Guide (Columnflow and cmsdb)
+## Submodules management guide (columnflow, law, order, and cmsdb)
 
 This directory contains submodules for the analysis framework, including `columnflow` and `cmsdb`. Note that `columnflow` itself has nested submodules (`law` and `order`).
 ```
@@ -76,16 +85,16 @@ modules/
 └── cmsdb/              # CMS database utilities
 ```
 
-### Update All Submodules
+To upddate submodules: 
 
-If you don’t have any local modifications in the submodules, you can simply run:
+- If you don’t have any local modifications in the submodules, you can simply run:
 This will fetch and update all submodules to their latest upstream versions.
 
 ```shell
 cf_update_submodules
 ```
 
-If you do have local changes, consider stashing them before running the update to avoid conflicts.
+- If you do have local changes, consider stashing them before running the update to avoid conflicts.
 
 ```shell
 cd hhmultilepton2/modules
