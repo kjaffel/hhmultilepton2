@@ -12,7 +12,7 @@
 
 ## Introduction
 
-This is the code base for the Run2+Run3 iteration of the CMS HH Multileptons analysis.
+This is the code base for the Run2+Run3 iteration of the CMS HH Multileptons analysis. Analysis based on [uhh-cms/columnflow](https://github.com/uhh-cms/columnflow), [law](https://github.com/riga/law) and [order](https://github.com/riga/order), also we use [uhh-cms/cmsdb](https://github.com/uhh-cms/cmsdb.git).
 
 The code is forked and for now heavily based on the UHH bersion of the [HH → bb𝜏𝜏 analysis](https://github.com/uhh-cms/hh2bbtautau)
 and still very much WIP. Expect remnants from the bb𝜏𝜏 analysis, crashes and bugs, you have been warned!
@@ -62,8 +62,8 @@ When you run the command, the setup script will guide you interactively, prompti
 <img width="1336" height="506" alt="image" src="img.png" />
 
 
-Code can now be run but first storage locations for the tasks outputs should be checked as configured [here](https://github.com/kjaffel/hhmultilepton2/blob/main/.setups/template.sh#L21). Currently outputs point to the user store of the `T2_EE_Estonia on manivald` so that outputs are also accessible remotely, but we will likely adapt this over time depending on the output.
-I.e large outputs available in a remote reachable location, smaller ones on local stores. Larger ones likely also split by user/cluster so that central versions can be reused. Can be configuered [here](https://github.com/kjaffel/hhmultilepton2/blob/main/law_outputs.cfg#L5).
+Code can now be run but first storage locations for the tasks outputs should be checked as configured [here](https://github.com/HEP-KBFI/hhmultilepton2/blob/main/.setups/template.sh#L21). Currently outputs point to the user store of the `T2_EE_Estonia on manivald` so that outputs are also accessible remotely, but we will likely adapt this over time depending on the output.
+I.e large outputs available in a remote reachable location, smaller ones on local stores. Larger ones likely also split by user/cluster so that central versions can be reused. Can be configuered [here](https://github.com/HEP-KBFI/hhmultilepton2/blob/main/law_outputs.cfg#L5).
 
 ## Submodules Management Guide (Columnflow and cmsdb)
 

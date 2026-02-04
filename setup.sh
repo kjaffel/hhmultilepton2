@@ -107,6 +107,7 @@ setup_multilepton() {
     local cf_htcondor_flavor_default="cern_el9"
     local cf_htcondor_memory_default=2GB
     local cf_htcondor_disk_default=5GB
+    local cf_htcondor_logs_default="false"
     local cf_slurm_flavor_default="manivald"
     local cf_slurm_partition_default="main"
     local cf_slurm_cpus_default=1
@@ -120,6 +121,7 @@ setup_multilepton() {
     export CF_HTCONDOR_FLAVOR="${CF_HTCONDOR_FLAVOR:-${cf_htcondor_flavor_default}}"
     export CF_HTCONDOR_MEMORY=${CF_HTCONDOR_MEMORY:-${cf_htcondor_memory_default}}
     export CF_HTCONDOR_DISK=${CF_HTCONDOR_DISK:-${cf_htcondor_disk_default}}
+    export CF_HTCONDOR_LOGS=${CF_HTCONDOR_LOGS:-${cf_htcondor_logs_default}}
     export CF_SLURM_FLAVOR="${CF_SLURM_FLAVOR:-${cf_slurm_flavor_default}}"
     export CF_SLURM_PARTITION="${CF_SLURM_PARTITION:-${cf_slurm_partition_default}}"
     export CF_SLURM_CPUS="${CF_SLURM_CPUS:-${cf_slurm_cpus_default}}"

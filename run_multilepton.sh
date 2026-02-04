@@ -11,12 +11,10 @@ task=${inherit}.ProvideReducedEvents
 #law run ml.GetDatasetLFNs --dataset data_mu_i --config 24_v15_central --limit-dataset-files 1 --remove-output 10
 
 law run ${task} \
-    --version onefile_test \
+    --version prod4 \
     --config 24_v15_central \
-    --dataset data_mu_e \
-    --limit-dataset-files 1 \
-    --workflow slurm --retries 1 \
-    --parallel-jobs 300 \
+    --dataset tt_sl_powheg --limit-dataset-files 1 \
+    --workflow slurm --retries 1 --parallel-jobs 300 \
     ${1} 
     
     # --branch 0 \
