@@ -12,17 +12,10 @@
 
 ## Introduction
 
-This repository contains the code base for the **Run 2 + Run 3 iteration of the CMS HH Multileptons analysis**.
-The analysis is built on top of
-[uhh-cms/columnflow](https://github.com/uhh-cms/columnflow),
-[law](https://github.com/riga/law), and
-[order](https://github.com/riga/order),
-and also makes use of [uhh-cms/cmsdb](https://github.com/uhh-cms/cmsdb).
+This repository contains the code base for the **Run 2 + Run 3 iteration of the CMS HH Multileptons analysis**. The analysis is built on top of [columnflow](https://github.com/columnflow/columnflow), [law](https://github.com/riga/law), and [order](https://github.com/riga/order), and also makes use of [uhh-cms/cmsdb](https://github.com/uhh-cms/cmsdb).
 
 The code is forked and currently **heavily based on the UHH version of the HH → bb𝜏𝜏 analysis**:
-[https://github.com/uhh-cms/hh2bbtautau](https://github.com/uhh-cms/hh2bbtautau)
-
-It is still very much a **work in progress**. Expect leftover components from the bb𝜏𝜏 analysis, crashes, and bugs — you have been warned 🙂
+[https://github.com/uhh-cms/hh2bbtautau](https://github.com/uhh-cms/hh2bbtautau). It is still very much a **work in progress**. Expect leftover components from the bb𝜏𝜏 analysis, crashes, and bugs — you have been warned 🙂
 
 Please make sure you are subscribed to the e-group:
 **[cms-hh-multilepton@cern.ch](mailto:cms-hh-multilepton@cern.ch)**

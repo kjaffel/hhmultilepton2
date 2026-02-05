@@ -107,10 +107,12 @@ setup_multilepton() {
     local cf_htcondor_flavor_default="cern_el9"
     local cf_htcondor_memory_default=2GB
     local cf_htcondor_disk_default=5GB
-    local cf_htcondor_logs_default="false"
+    local cf_htcondor_logs_default=false
     local cf_slurm_flavor_default="manivald"
     local cf_slurm_partition_default="main"
     local cf_slurm_cpus_default=1
+    local cf_slurm_mem_per_cpu_default=2GB
+
     local hname="$( hostname 2> /dev/null )"
     if [ "$?" = "0" ]; then
         # lxplus
@@ -125,6 +127,7 @@ setup_multilepton() {
     export CF_SLURM_FLAVOR="${CF_SLURM_FLAVOR:-${cf_slurm_flavor_default}}"
     export CF_SLURM_PARTITION="${CF_SLURM_PARTITION:-${cf_slurm_partition_default}}"
     export CF_SLURM_CPUS="${CF_SLURM_CPUS:-${cf_slurm_cpus_default}}"
+    export CF_SLURM_MEM_PER_CPU="${CF_SLURM_MEM_PER_CPU:-${cf_slurm_mem_per_cpu_default}}"
     # interactive setup
     if ! ${CF_REMOTE_ENV}; then
         cf_setup_interactive_body() {

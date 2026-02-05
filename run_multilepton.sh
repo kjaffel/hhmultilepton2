@@ -3,19 +3,20 @@
 inherit=ml # "cf" or "ml"
 task=${inherit}.GetDatasetLFNs
 task=${inherit}.SelectEvents
-task=${inherit}.PlotVariables1D
 task=${inherit}.ReduceEvents
 task=${inherit}.ProvideReducedEvents
+task=${inherit}.PlotVariables1D
 
 #law run cf.GetDatasetLFNs --dataset data_mu_i --config 24_v15_central --remove-output 10
 #law run ml.GetDatasetLFNs --dataset data_mu_i --config 24_v15_central --limit-dataset-files 1 --remove-output 10
 
 law run ${task} \
-    --version prod4 \
+    --version onetest \
     --config 24_v15_central \
-    --dataset tt_sl_powheg --limit-dataset-files 1 \
-    --workflow slurm --retries 1 --parallel-jobs 300 \
+    --dataset dy_m50toinf_2j_pt600toinf_amcatnlo --limit-dataset-files 1 \
     ${1} 
+    #--workflow slurm --retries 1 --parallel-jobs 300 \
+    #--dataset tt_sl_powheg --limit-dataset-files 1 \
     
     # --branch 0 \
     # --dataset dy_m50toinf_2j_pt600toinf_amcatnlo \

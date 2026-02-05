@@ -26,6 +26,7 @@ if [ "$cluster" = "manivald" ]; then
     export CF_SLURM_FLAVOR="manivald"
     export CF_SLURM_PARTITION="main"
     export CF_SLURM_CPUS=4
+    export CF_SLURM_MEM_PER_CPU=8GB
     export CF_CLUSTER_LOCAL_PATH="/home/$CF_CERN_USER/HHMultilepton_Run3/"
     export TMPDIR="/scratch/local/$CF_CERN_USER"
 
@@ -37,7 +38,7 @@ elif [ "$cluster" = "lxplus" ]; then
     export CF_HTCONDOR_MEMORY=2GB
     export CF_HTCONDOR_DISK=5GB
     export CF_HTCONDOR_RUNTIME="3h"
-    export CF_HTCONDOR_LOGS="true"
+    export CF_HTCONDOR_LOGS=true
     export CF_CLUSTER_LOCAL_PATH="/eos/user/$CF_CERN_USER_FIRSTCHAR/$CF_CERN_USER/HHMultilepton_Run3/"
     export TMPDIR="/tmp/$CF_CERN_USER"
 fi
