@@ -241,7 +241,7 @@ datasets:
         - w_vbf_wlnu_madgraph
         - z_vbf_zll_m50toinf_madgraph
     qcd:
-      tag:
+      tag: ["no_lhe_weights"]
       color: "#bd1f01" # red
       label: 
       cmsdb:

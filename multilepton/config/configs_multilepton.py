@@ -693,7 +693,7 @@ def add_config(
             dataset_names[dtype].append(dataset_name)
             process_names[dtype].append(proc)
             # Add tags to the process
-            if law.util.multi_match(dataset.name, [
+            if dataset.name.startswith("qcd_") or law.util.multi_match(dataset.name, [
                 r"^(ww|wz|zz)_.*pythia$",
                 r"^tt(w|z)_.*amcatnlo$",
             ]):
