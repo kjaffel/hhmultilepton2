@@ -38,6 +38,7 @@ class TIDGroups:
     def __getattr__(self, name):
         # Always return empty list if missing
         return self._groups.get(name, [])
+
     def __getitem__(self, name):
         return self._groups.get(name, [])
 
@@ -621,7 +622,6 @@ def lepton_selection(
     # for this, combine iso and pt values, e.g. iso 255 and pt 32.3 -> 2550032.3
     f = 10**(np.ceil(np.log10(ak.max(events.Tau.pt))) + 2)
     tau_sorting_key = events.Tau[f"raw{self.config_inst.x.tau_tagger}VSjet"] * f + events.Tau.pt
-    
     # tau_sorting_indices = ak.argsort(tau_sorting_key, axis=-1, ascending=False)
     # perform each lepton election step separately per trigger, avoid caching
     # sel_kwargs = {**kwargs, "call_force": True}
@@ -721,7 +721,7 @@ def lepton_selection(
         ("fam", "e_match_any"): e_match_any,
         ("fam", "mu_match_any"): mu_match_any,
     })
-    
+
     # ────────────────────────────────────────────────────────────────
     # 2 SECOND LOOP – evaluate every physics channel once
     # ────────────────────────────────────────────────────────────────
@@ -939,7 +939,7 @@ def lepton_selection(
                 #     trig_match_ok = base_ok & (ak.sum(e_match & e_ctrl_bdt, axis=1) >= 1)
                 # elif tid in tids.single_mu:
                 #     trig_match_ok = base_ok & (ak.sum(mu_match & mu_ctrl_bdt, axis=1) >= 1)
-                
+
                 trig_match_ok = base_ok
                 trig_match_bdt = trig_match_bdt | trig_match_ok
                 single_triggered = ak.where(trig_match_ok, True, single_triggered)
@@ -1081,7 +1081,6 @@ def lepton_selection(
 
                 tight_ok = ok & ((ak.sum(e_mask, axis=1) == 1) & (ak.sum(mu_mask, axis=1) == 2))
                 tight_sel = tight_sel | tight_ok
-                
                 trig_match_ok = base_ok
                 if tid in tids.single_e:
                     # emu_from_e — accept ONLY events with e_only (anti-overlap)
