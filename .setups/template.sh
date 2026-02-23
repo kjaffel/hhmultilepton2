@@ -26,6 +26,7 @@ if [ "$cluster" = "manivald" ]; then
     export CF_SLURM_FLAVOR="manivald"
     export CF_SLURM_PARTITION="main"
     export CF_SLURM_CPUS=4
+    export CF_SLURM_RUNTIME="3h"
     export CF_SLURM_MEM_PER_CPU=8GB
     export CF_CLUSTER_LOCAL_PATH="/home/$CF_CERN_USER/HHMultilepton_Run3/"
     export TMPDIR="/scratch/local/$CF_CERN_USER"
