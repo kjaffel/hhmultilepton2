@@ -118,8 +118,8 @@ def electron_selection(
         btag_tagger = "particleNet"
         btag_discriminator = "btagPNetB"
 
-    btagcut_loose = self.config_inst.x.btag_working_points[btag_tagger]["loose"]
-    btagcut_medium = self.config_inst.x.btag_working_points[btag_tagger]["medium"]
+    # btagcut_loose = self.config_inst.x.btag_working_points[btag_tagger]["loose"]
+    # btagcut_medium = self.config_inst.x.btag_working_points[btag_tagger]["medium"]
     btagcut_tight = self.config_inst.x.btag_working_points[btag_tagger]["tight"]
 
     # obtain mva flags, which might be located at different routes, depending on the nano version
@@ -292,8 +292,8 @@ def muon_selection(
         btag_tagger = "particleNet"
         btag_discriminator = "btagPNetB"
 
-    btagcut_loose = self.config_inst.x.btag_working_points[btag_tagger]["loose"]
-    btagcut_medium = self.config_inst.x.btag_working_points[btag_tagger]["medium"]
+    # btagcut_loose = self.config_inst.x.btag_working_points[btag_tagger]["loose"]
+    # btagcut_medium = self.config_inst.x.btag_working_points[btag_tagger]["medium"]
     btagcut_tight = self.config_inst.x.btag_working_points[btag_tagger]["tight"]
 
     # default muon mask
