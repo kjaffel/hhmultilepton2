@@ -456,9 +456,9 @@ def tau_selection(
 
     # remove taus with too close spatial separation to previously selected leptons
     if electron_mask is not None:
-        base_mask = base_mask & ak.all(events.Tau.metric_table(events.Electron[electron_mask]) > 0.5, axis=2)
+        base_mask = base_mask & ak.all(events.Tau.metric_table(events.Electron[electron_mask]) > 0.3, axis=2)
     if muon_mask is not None:
-        base_mask = base_mask & ak.all(events.Tau.metric_table(events.Muon[muon_mask]) > 0.5, axis=2)
+        base_mask = base_mask & ak.all(events.Tau.metric_table(events.Muon[muon_mask]) > 0.3, axis=2)
 
     # trigger dependent cuts
     trigger_specific_mask = base_mask & (events.Tau.pt > min_pt)
@@ -644,7 +644,7 @@ def lepton_selection(
         e_mask_bdt, e_ctrl_bdt, e_veto_bdt = self[electron_selection](events, trigger, ch_key="eormu", **kwargs)
         mu_mask_bdt, mu_ctrl_bdt, mu_veto_bdt = self[muon_selection](events, trigger, ch_key="eormu", **kwargs)
         tau_mask, tau_trigger_specific_mask, tau_iso_mask, noid_tau_mask = self[tau_selection](events,
-            trigger, e_mask, mu_mask, **kwargs)
+            trigger, e_veto, mu_veto, **kwargs)
 
         # early study tagger independendt taus
         # sel_noid_tau_mask = noid_tau_mask
@@ -2208,6 +2208,7 @@ def lepton_selection(
             "eles_tight": sel_tightelectron_indices,
             "mus_tight": sel_tightmuon_indices,
             "taus_iso": sel_isotau_indices,
+            "taus_noid": sel_noid_tau_indicies,
         },
     )
 
