@@ -78,12 +78,101 @@ def update_channel_ids(
     return ak.where(channel_mask, correct_channel_id, previous_channel_ids)
 
 
+def get_cone_pt_from_jetidx(
+    lepton_pt: ak.Array,
+    lepton_eta: ak.Array,
+    lepton_phi: ak.Array,
+    jet_pt: ak.Array,
+    jet_eta: ak.Array,
+    jet_phi: ak.Array,
+    closestjet_indicies: ak.Array,
+    tight_mask: ak.Array,
+) -> ak.Array:
+    """
+    - if the lepton is tight: cone_pt = lepton_pt
+    - else, if the associated jet exists and DeltaR(lepton, jet) < 0.4:
+        cone_pt = 0.9 * jet_pt
+    - else:
+        cone_pt = lepton_pt
+    """
+
+    good_indicies = closestjet_indicies >= 0
+    n_jets = ak.to_numpy(ak.num(jet_pt, axis=1))
+
+    # Defining a global index for the closest jet in each event
+    jet_offsets = np.cumsum(n_jets) - n_jets
+    global_closestjet_indicies = closestjet_indicies + jet_offsets[:, np.newaxis]
+    safe_global_closestjet_indicies = ak.where(
+        good_indicies,
+        global_closestjet_indicies,
+        0,
+    )
+    flat_safe_global_closestjet_indicies = ak.to_numpy(ak.flatten(safe_global_closestjet_indicies, axis=1))
+    # Flatenning closest jet associated quantities and associating them with the global indices
+    flat_jet_pt = ak.flatten(jet_pt, axis=1)
+    flat_jet_eta = ak.flatten(jet_eta, axis=1)
+    flat_jet_phi = ak.flatten(jet_phi, axis=1)
+    selected_flat_jet_pt = flat_jet_pt[flat_safe_global_closestjet_indicies]
+    selected_flat_jet_eta = flat_jet_eta[flat_safe_global_closestjet_indicies]
+    selected_flat_jet_phi = flat_jet_phi[flat_safe_global_closestjet_indicies]
+    # Associating each lepton with the corresponding nearest jet
+    # We need to unflatten the arrays, as the cone-pT need to have the same shape as lepton.pT
+    lepton_counts = ak.num(lepton_pt, axis=1)
+    closest_jet_pt = ak.unflatten(
+        selected_flat_jet_pt,
+        lepton_counts,
+    )
+    closest_jet_eta = ak.unflatten(
+        selected_flat_jet_eta,
+        lepton_counts,
+    )
+    closest_jet_phi = ak.unflatten(
+        selected_flat_jet_phi,
+        lepton_counts,
+    )
+    # Now we define the lepton's nearby jet kinematics in the jagged structure
+    closest_jet_pt = ak.where(
+        good_indicies,
+        closest_jet_pt,
+        lepton_pt,
+    )
+    closest_jet_eta = ak.where(
+        good_indicies,
+        closest_jet_eta,
+        lepton_eta,
+    )
+    closest_jet_phi = ak.where(
+        good_indicies,
+        closest_jet_phi,
+        lepton_phi,
+    )
+    # Computing DeltaR (metric table does not work here)
+    delta_phi = lepton_phi - closest_jet_phi
+    delta_phi = (delta_phi + np.pi) % (2 * np.pi) - np.pi
+    delta_eta = lepton_eta - closest_jet_eta
+    closest_jet_DR = np.sqrt(delta_eta**2 + delta_phi**2)
+    # See if the nearby jet is within a 0.4 cone with respect to the lepton
+    has_nearby_jet = good_indicies & (closest_jet_DR < 0.4)
+    # If lepton is tight or there are no nearby jets, cone-pT resolves to lepton pT
+    cone_pt = ak.where(
+        tight_mask,
+        lepton_pt,
+        ak.where(
+            has_nearby_jet,
+            0.9 * closest_jet_pt,
+            lepton_pt,
+        ),
+    )
+
+    return cone_pt
+
+
 @selector(
     uses={
         "Electron.{pt,eta,phi,dxy,dz}",
         "Electron.{pfRelIso03_all,seediEtaOriX,seediPhiOriY,sip3d,miniPFRelIso_all,sieie}",
         "Electron.{hoe,eInvMinusPInv,convVeto,lostHits,jetPtRelv2,jetIdx}",
-        "Jet.btagDeepFlavB",
+        "Jet.{pt,eta,phi,btagPNetB,btagUParTAK4B}",
         IF_NANO_V12("Electron.mvaTTH"),
         IF_NANO_V14("Electron.promptMVA"),
         IF_NANO_V15("Electron.promptMVA"),
@@ -99,7 +188,7 @@ def electron_selection(
     **kwargs,
 ) -> tuple[ak.Array | None, ak.Array]:
     """
-    Electron selection returning two sets of masks for default and veto electrons.
+    Electron selection returning three sets of masks and the cone-pT.
     See https://twiki.cern.ch/twiki/bin/view/CMS/EgammaNanoAOD?rev=4
     """
     # ch_key = kwargs.get("ch_key", None)
@@ -149,7 +238,6 @@ def electron_selection(
         # min_pt = 26.0 if is_2016 else (31.0 if is_single else 25.0)
         # max_eta = 2.5 if is_single else 2.1
 
-        cone_pt = events.Electron.pt + events.Electron.miniPFRelIso_all * events.Electron.pt
         closestjet_indicies = events.Electron.jetIdx[:, :]
         bad_indicies = (closestjet_indicies == -1)  # set btag to 0 if no closest jet
         btag_values_bad = 0 * events.Electron.pt[bad_indicies]
@@ -158,7 +246,7 @@ def electron_selection(
         # atleast_medium = ((mva_iso_wp80 == 1) | (mva_iso_wp90 == 1))
         atleast_loose = ((mva_iso_wp80 == 1) | (mva_iso_wp90 == 1) | (mva_iso_wphzz == 1))
         tight_mask = (
-            (cone_pt > 10.0) &
+            (events.Electron.pt > 10) &
             (abs(events.Electron.eta) < 2.5) &
             (abs(events.Electron.dxy) < 0.5) &
             (abs(events.Electron.dz) < 1) &
@@ -173,6 +261,18 @@ def electron_selection(
             (promptMVA > 0.3) &
             (btag_values < btagcut_tight)
         )
+
+        cone_pt = get_cone_pt_from_jetidx(
+            events.Electron.pt,
+            events.Electron.eta,
+            events.Electron.phi,
+            events.Jet.pt,
+            events.Jet.eta,
+            events.Jet.phi,
+            closestjet_indicies,
+            tight_mask,
+        )
+
         loose_mask = (
             (events.Electron.pt > 7.0) &
             (abs(events.Electron.eta) < 2.5) &
@@ -188,6 +288,7 @@ def electron_selection(
         jetisolepmvapassed = (promptMVA > 0.3)
         jetisolepmvafailed = ((promptMVA <= 0.3) & (events.Electron.jetPtRelv2 < (1. / 1.7)))
         fakeable_mask = (
+            (events.Electron.pt > 10) &
             (cone_pt > 10.0) &
             (abs(events.Electron.eta) < 2.5) &
             (abs(events.Electron.dxy) < 0.5) &
@@ -215,7 +316,7 @@ def electron_selection(
                 (events.Electron.seediPhiOriY > 72)
             )
 
-    return tight_mask, fakeable_mask, loose_mask
+    return tight_mask, fakeable_mask, loose_mask, cone_pt
 
 
 @electron_selection.init
@@ -260,7 +361,7 @@ def electron_trigger_matching(
     uses={
         "Muon.{pt,eta,phi,looseId,mediumId,tightId}",
         "Muon.{pfRelIso04_all,dxy,dz,sip3d,miniPFRelIso_all,jetPtRelv2,jetIdx}",
-        "Jet.btagDeepFlavB",
+        "Jet.{pt,eta,phi,btagPNetB,btagUParTAK4B}",
         IF_NANO_V12("Muon.mvaTTH"),
         IF_NANO_V14("Muon.promptMVA"),
         IF_NANO_V15("Muon.promptMVA"),
@@ -311,7 +412,6 @@ def muon_selection(
             # nano <v14
             promptMVA = events.Muon.mvaTTH
 
-        cone_pt = events.Muon.pt + events.Muon.miniPFRelIso_all * events.Muon.pt
         closestjet_indicies = events.Muon.jetIdx[:, :]
         bad_indicies = (closestjet_indicies == -1)  # set btag to 0 if no closest jet
         btag_values_bad = 0 * events.Muon.pt[bad_indicies]
@@ -320,7 +420,7 @@ def muon_selection(
         atleast_medium = ((events.Muon.mediumId == 1) | (events.Muon.tightId == 1))
         atleast_loose = ((events.Muon.looseId == 1) | (events.Muon.mediumId == 1) | (events.Muon.tightId == 1))
         tight_mask = (
-            (cone_pt > 10) &
+            (events.Muon.pt > 10) &
             (abs(events.Muon.eta) < 2.4) &
             (abs(events.Muon.dxy) < 0.05) &
             (abs(events.Muon.dz) < 0.1) &
@@ -330,6 +430,18 @@ def muon_selection(
             (btag_values < btagcut_tight) &
             (promptMVA > 0.5)
         )
+
+        cone_pt = get_cone_pt_from_jetidx(
+            events.Muon.pt,
+            events.Muon.eta,
+            events.Muon.phi,
+            events.Jet.pt,
+            events.Jet.eta,
+            events.Jet.phi,
+            closestjet_indicies,
+            tight_mask,
+        )
+
         loose_mask = (
             (events.Muon.pt > 5) &
             (abs(events.Muon.eta) < 2.4) &
@@ -340,6 +452,7 @@ def muon_selection(
             atleast_loose
         )
         fakeable_mask = (
+            (events.Muon.pt > 10) &
             (cone_pt > 10) &
             (abs(events.Muon.eta) < 2.4) &
             (abs(events.Muon.dxy) < 0.05) &
@@ -351,7 +464,7 @@ def muon_selection(
             ((promptMVA > 0.5) | ((promptMVA <= 0.5) & (events.Muon.jetPtRelv2 < (1. / 1.8))))
         )
 
-    return tight_mask, fakeable_mask, loose_mask
+    return tight_mask, fakeable_mask, loose_mask, cone_pt
 
 
 @selector(
@@ -563,6 +676,8 @@ def tau_trigger_matching(
         "matched_trigger_ids", "tight_sel", "trig_match", "tight_sel_bdt", "trig_match_bdt", "ok_bdt_eormu",
         "ElectronLoose", "ElectronTight", "MuonLoose", "MuonTight",
         "TauIso", "TauNoID",
+        # cone-pT saved on original lepton collections
+        "Electron.cone_pt", "Muon.cone_pt",
     },
 )
 def lepton_selection(
@@ -600,7 +715,9 @@ def lepton_selection(
     sel_electron_mask = full_like(events.Electron.pt, False, dtype=bool)
     sel_looseelectron_mask = full_like(events.Electron.pt, False, dtype=bool)
     sel_tightelectron_mask = full_like(events.Electron.pt, False, dtype=bool)
+    electron_cone_pt = full_like(events.Electron.pt, np.float32(-999.0), dtype=np.float32)
     sel_muon_mask = full_like(events.Muon.pt, False, dtype=bool)
+    muon_cone_pt = full_like(events.Muon.pt, np.float32(-999.0), dtype=np.float32)
     sel_loosemuon_mask = full_like(events.Muon.pt, False, dtype=bool)
     sel_tightmuon_mask = full_like(events.Muon.pt, False, dtype=bool)
     sel_tau_mask = full_like(events.Tau.pt, False, dtype=bool)
@@ -639,13 +756,25 @@ def lepton_selection(
         if not ak.any(fired):
             continue
 
-        e_mask, e_ctrl, e_veto = self[electron_selection](events, trigger, **kwargs)
-        mu_mask, mu_ctrl, mu_veto = self[muon_selection](events, trigger, **kwargs)
-        e_mask_bdt, e_ctrl_bdt, e_veto_bdt = self[electron_selection](events, trigger, ch_key="eormu", **kwargs)
-        mu_mask_bdt, mu_ctrl_bdt, mu_veto_bdt = self[muon_selection](events, trigger, ch_key="eormu", **kwargs)
+        e_mask, e_ctrl, e_veto, e_cone_pt = self[electron_selection](events, trigger, **kwargs)
+        mu_mask, mu_ctrl, mu_veto, mu_cone_pt = self[muon_selection](events, trigger, **kwargs)
+        e_mask_bdt, e_ctrl_bdt, e_veto_bdt, e_cone_pt_bdt = self[electron_selection](events, trigger,
+            ch_key="eormu", **kwargs)
+        mu_mask_bdt, mu_ctrl_bdt, mu_veto_bdt, mu_cone_pt_bdt = self[muon_selection](events, trigger,
+            ch_key="eormu", **kwargs)
         tau_mask, tau_trigger_specific_mask, tau_iso_mask, noid_tau_mask = self[tau_selection](events,
             trigger, e_veto, mu_veto, **kwargs)
 
+        electron_cone_pt = ak.where(
+            e_ctrl,
+            e_cone_pt,
+            electron_cone_pt,
+        )
+        muon_cone_pt = ak.where(
+            mu_ctrl,
+            mu_cone_pt,
+            muon_cone_pt,
+        )
         # early study tagger independendt taus
         # sel_noid_tau_mask = noid_tau_mask
         sel_noid_tau_mask = sel_noid_tau_mask | noid_tau_mask
@@ -2149,7 +2278,17 @@ def lepton_selection(
     sel_tightelectron_indices = sorted_indices_from_mask(sel_tightelectron_mask, events.Electron.pt, ascending=False)
     sel_tightmuon_indices = sorted_indices_from_mask(sel_tightmuon_mask, events.Muon.pt, ascending=False)
     sel_isotau_indices = sorted_indices_from_mask(sel_isotau_mask, tau_sorting_key, ascending=False)
-
+    # Saving cone-pT for fakeable leptons
+    events = set_ak_column(
+        events,
+        "Electron.cone_pt",
+        electron_cone_pt,
+    )
+    events = set_ak_column(
+        events,
+        "Muon.cone_pt",
+        muon_cone_pt,
+    )
     # events = set_ak_column(events, "Electron", events.Electron[sel_electron_indices])
     events = set_ak_column(events, "ElectronLoose", events.Electron[sel_looseelectron_indices])
     events = set_ak_column(events, "ElectronTight", events.Electron[sel_tightelectron_indices])
