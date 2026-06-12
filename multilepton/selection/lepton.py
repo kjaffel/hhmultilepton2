@@ -2008,11 +2008,11 @@ def lepton_selection(
                 tight_sel = tight_sel | tight_ok
 
                 trig_match_ok = base_ok
-                if tid in single_e_tids:
+                if tid in tids.single_e:
                     # emu_from_e — accept ONLY events with e_only (anti-overlap)
                     trig_match_ok = trig_match_ok & e_only & (ak.sum(e_match & e_ctrl, axis=1) >= 1)
 
-                elif tid in single_mu_tids:
+                elif tid in tids.single_mu:
                     # emu_from_mu — allow both_families; the matching/logic below handles e-side
                     trig_match_ok = trig_match_ok & (ak.sum(mu_match & mu_ctrl, axis=1) >= 1)
                     # for events with both triggers firing:
@@ -2221,7 +2221,7 @@ def lepton_selection(
                 tight_sel = tight_sel | tight_ok
 
                 trig_match_ok = base_ok
-                if tid in cross_tau_tau_any:
+                if tid in tids.cross_tau_tau_any:
                     trig_match_ok = trig_match_ok & (ak.sum(tau_match & ch_tau_mask, axis=1) >= 1)
 
                 trig_match = trig_match | trig_match_ok
