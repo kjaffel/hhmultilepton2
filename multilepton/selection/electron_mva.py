@@ -9,7 +9,7 @@ import joblib
 
 
 # Model paths (relative to this module or absolute)
-_MODEL_DIR = "/eos/user/m/mkumari/Lepton-MVA-Run3/models_old"
+_MODEL_DIR = "/eos/user/m/mkumari/hhmultilepton2/multilepton/mva_model"
 _MODEL_PATH = os.path.join(_MODEL_DIR, "ele_xgb_clf.pkl")
 _SCALER_PATH = os.path.join(_MODEL_DIR, "ele_scaler.pkl")
 _FEATURES_PATH = os.path.join(_MODEL_DIR, "ele_features.pkl")
