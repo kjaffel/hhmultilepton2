@@ -665,6 +665,11 @@ def add_config(
     cfg.x.btag_sf_jec_sources = btagJECsources
     cfg.x.btag_working_points = bTagWorkingPoints(year, run, campaign)
 
+    # Configure custom MVA models for lepton selection
+    # Options: "custom" (XGBoost trained model), "nanoaod" (default NanoAOD MVA)
+    cfg.x.electron_mva_source = "custom"
+    cfg.x.muon_mva_source = "custom"
+
     ConfigureLuminosity(cfg, campaign, year, analysis_data)
     ConfigureLFNS(cfg, limit_dataset_files)
     ConfigureTaus(cfg, run, campaign)

@@ -29,13 +29,14 @@ def hh_truth_selector(
     events: ak.Array,
     **kwargs,
 ) -> tuple[ak.Array, SelectionResult]:
+    logger.info("Running GEN HH SELECTOR")
 
     gen = events.GenPart
 
     # ---------------------------------------------------------
-    # 1️⃣ Identify Higgs bosons
+    # Identify Higgs bosons
     # ---------------------------------------------------------
-
+    
     higgs = gen[np.abs(gen.pdgId) == 25]
     higgs_padded = ak.pad_none(higgs, 2)
 
@@ -43,7 +44,7 @@ def hh_truth_selector(
     h2 = higgs_padded[:, 1]
 
     # ---------------------------------------------------------
-    # 2️⃣ Di-Higgs kinematics
+    # Di-Higgs kinematics
     # ---------------------------------------------------------
 
     hh_system = h1 + h2
@@ -65,7 +66,7 @@ def hh_truth_selector(
     costheta_star = ak.fill_none(costheta_star, -999.0)
 
     # ---------------------------------------------------------
-    # 3️⃣ Higgs decay classification 
+    #Higgs decay classification 
     # ---------------------------------------------------------
 
     mother_idx = gen.genPartIdxMother

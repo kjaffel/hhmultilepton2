@@ -1,7 +1,8 @@
 # coding: utf-8
 
 """
-Gen-matching selection: match selected leptons/taus to generator-level particles.
+Gen-matching selection: classify selected leptons/taus using NanoAOD genPartFlav
+(Run3-style, no GenPart/GenVisTau/GenJet dR matching).
 """
 
 from __future__ import annotations
@@ -17,61 +18,39 @@ ak = maybe_import("awkward")
 logger = law.logger.get_logger(__name__)
 
 
-def _delta_phi(phi1: ak.Array, phi2: ak.Array) -> ak.Array:
-    return np.arctan2(np.sin(phi1 - phi2), np.cos(phi1 - phi2))
-
-
-def _match_by_dr(reco: ak.Array, gen: ak.Array, dr_max: float) -> ak.Array:
-    if len(gen) == 0:
-        return ak.zeros_like(reco.pt, dtype=bool)
-    dphi = _delta_phi(reco.phi[:, :, None], gen.phi[:, None, :])
-    deta = reco.eta[:, :, None] - gen.eta[:, None, :]
-    dr = np.sqrt(dphi * dphi + deta * deta)
-    return ak.any(dr < dr_max, axis=2)
-
-
-def _get_gen_props(reco: ak.Array, gen_part: ak.Array) -> tuple[ak.Array, ak.Array, ak.Array]:
-    """Return (is_matched, gen_pdg, gen_pt) for reco objects using genPartIdx."""
-    fake_array = ak.fill_none(ak.zeros_like(reco.pt, dtype=bool), False)
-    if not hasattr(reco, "genPartIdx"):
-        return fake_array, ak.zeros_like(reco.pt), ak.zeros_like(reco.pt)
-
-    gen_idx = reco.genPartIdx
-    is_matched = gen_idx >= 0
-    gen_idx_safe = ak.where(is_matched, gen_idx, 0)
-    gen_pdg = ak.where(
-        is_matched & (gen_idx_safe < ak.num(gen_part.pdgId)),
-        gen_part.pdgId[gen_idx_safe],
-        0,
-    )
-    gen_pt = ak.where(
-        is_matched & (gen_idx_safe < ak.num(gen_part.pt)),
-        gen_part.pt[gen_idx_safe],
-        0,
-    )
-    return is_matched, gen_pdg, gen_pt
-
-
-def _get_charge_flip_mask(reco: ak.Array, gen_pdg: ak.Array) -> ak.Array:
-    if not hasattr(reco, "charge"):
-        return ak.zeros_like(gen_pdg, dtype=bool)
-    reco_charge = reco.charge
-    # Use np.sign to avoid division-by-zero warnings; sign(0)==0 naturally
-    gen_charge = np.sign(gen_pdg)
-    return (reco_charge != 0) & (gen_charge != 0) & (reco_charge != gen_charge)
-
+# ====================================================================
+# genPartFlav reference (NanoAOD v12+, Run3)
+# ====================================================================
+# Electron_genPartFlav:
+#   0  = unmatched (jet fake)
+#   1  = prompt electron               -> genuine
+#  15  = from tau decay                -> genuine
+#   3  = photon conversion (old conv.) -> fake (conversion)
+#  22  = photon conversion             -> fake (conversion)
+#
+# Muon_genPartFlav:
+#   0  = unmatched (jet fake)
+#   1  = prompt muon                   -> genuine
+#  15  = from tau decay                -> genuine
+#   3  = light meson decay             -> fake
+#   4  = kaon decay                    -> fake
+#   5  = heavy flavor (b/c) decay      -> fake
+#
+# Tau_genPartFlav:
+#   5  = genuine hadronic tau
+#   1,3 = electron faking tau
+#   2,4 = muon faking tau
+#   0  = jet faking tau
+# ====================================================================
 
 
 @selector(
     uses={
-        "GenPart.{pt,pdgId}",
-        "GenVisTau.{pt,eta,phi}",
-        "GenJet.{pt,eta,phi}",
-        "Electron.genPartIdx",
+        "Electron.genPartFlav",
         "Electron.charge",
-        "Muon.genPartIdx",
+        "Muon.genPartFlav",
         "Muon.charge",
-        "Tau.genPartIdx",
+        "Tau.genPartFlav",
         "Tau.charge",
         "channel_id",
         "ElectronLoose", "MuonLoose", "TauIso",
@@ -100,81 +79,61 @@ def gen_matching_selection(
     **kwargs,
 ) -> tuple[ak.Array, SelectionResult]:
     """
-    Run2-style gen-matching classification:
-    - leptons matched to gen leptons/photons/hadTaus/jets
-    - hadTaus matched to gen hadTaus/electrons/muons/jets
-    - optional charge-flip handling
+    Run3-style gen-matching classification using genPartFlav only:
+    - leptons classified as genuine/conversion/jet-fake via Electron/Muon_genPartFlav
+    - hadTaus classified as genuine/e-fake/mu-fake/jet-fake via Tau_genPartFlav
     - event category: fakes, flips, conversions, nonfakes (+ gentau/faketau)
+
+    Note: charge-flip information is NOT available from genPartFlav alone, so
+    the charge-flip counters are set to zero. This only matters if
+    `use_flips` / `use_flips_hadtau` are enabled in the config.
     """
-    
+
     # Config flags (default to False unless set)
+    logger.info("Running Run3 genPartFlav-based gen_matching_selection")
+
     apply_lepton_gen_matching = bool(self.config_inst.x("apply_lepton_gen_matching", True))
     apply_hadTau_gen_matching = bool(self.config_inst.x("apply_hadTau_gen_matching", True))
     use_flips = bool(self.config_inst.x("use_flips", False))
     use_flips_hadtau = bool(self.config_inst.x("use_flips_hadtau", False))
     use_gen_tau_and_fake_tau = bool(self.config_inst.x("use_gen_tau_and_fake_tau", False))
 
-    # Channel IDs from config
-    channel_ids = {ch.name: ch.id for ch in self.config_inst.channels}
-    channel_id = events.channel_id
-
-    # Get all leptons and gen particles
+    # Get selected objects
     e_sel = events.ElectronLoose
     mu_sel = events.MuonLoose
     tau_sel = events.TauIso
-    gen_part = events.GenPart
 
-    # Lepton matching (Run2 logic — NO mother tracing, purely gen-match type)
-    e_is_matched, e_gen_pdg, e_gen_pt = _get_gen_props(e_sel, gen_part)
-    mu_is_matched, mu_gen_pdg, _      = _get_gen_props(mu_sel, gen_part)
-    tau_is_matched, tau_gen_pdg, _    = _get_gen_props(tau_sel, gen_part)
+    e_flav = e_sel.genPartFlav
+    mu_flav = mu_sel.genPartFlav
+    tau_flav = tau_sel.genPartFlav
 
     # ── Electrons ────────────────────────────────────────────────────────────
-    # Genuine: matched to gen e (11) or gen tau (15)
-    e_is_lepton  = e_is_matched & (np.abs(e_gen_pdg) == 11)
-    e_is_gentau  = e_is_matched & (np.abs(e_gen_pdg) == 15)
-    # Conversion: matched to gen photon (22) with pt > 0.5 * reco pt
-    e_is_photon  = (
-        e_is_matched
-        & ~e_is_lepton
-        & ~e_is_gentau
-        & (np.abs(e_gen_pdg) == 22)
-        & (e_gen_pt > (0.5 * e_sel.pt))
-    )
-    # Fake: everything else (unmatched, other pdgId, low-pt photon, ...)
-    e_is_jet     = ~(e_is_lepton | e_is_gentau | e_is_photon)
+    e_is_lepton = (e_flav == 1)                       # prompt e
+    e_is_gentau = (e_flav == 15)                      # e from tau decay -> genuine
+    e_is_photon = (e_flav == 3) | (e_flav == 22)      # conversion -> fake
+    e_is_jet    = ~(e_is_lepton | e_is_gentau | e_is_photon)  # catch-all, includes flav 4/5 too
 
     # ── Muons ────────────────────────────────────────────────────────────────
-    # Genuine: matched to gen mu (13) or gen tau (15)
-    mu_is_lepton = mu_is_matched & (np.abs(mu_gen_pdg) == 13)
-    mu_is_gentau = mu_is_matched & (np.abs(mu_gen_pdg) == 15)
-    mu_is_photon = ak.zeros_like(mu_is_matched, dtype=bool)   # muons have no photon conversion
-    mu_is_jet    = ~(mu_is_lepton | mu_is_gentau)
+    mu_is_lepton = (mu_flav == 1)                     # prompt mu
+    mu_is_gentau = (mu_flav == 15)                    # mu from tau decay -> genuine
+    mu_is_photon = ak.zeros_like(mu_flav, dtype=bool)  # muons: no photon conversion category
+    mu_is_jet    = (mu_flav == 0) | (mu_flav == 3) | (mu_flav == 4) | (mu_flav == 5)
 
-    # ── HadTau matching (priority order via DR) ───────────────────────────────
-    # 1. ΔR < 0.3 to GenVisTau → genuine hadtau
-    tau_match_genvistau = _match_by_dr(tau_sel, events.GenVisTau, dr_max=0.3)
-    # 2. gen e or gen mu (via genPartIdx) → lepton→tau fake
-    tau_is_e    = tau_is_matched & ~tau_match_genvistau & (np.abs(tau_gen_pdg) == 11)
-    tau_is_mu   = tau_is_matched & ~tau_match_genvistau & ~tau_is_e & (np.abs(tau_gen_pdg) == 13)
-    # 3. ΔR < 0.3 to GenJet → jet→tau fake
-    tau_match_genjet = _match_by_dr(tau_sel, events.GenJet, dr_max=0.3)
-    tau_is_jet  = ~tau_match_genvistau & ~tau_is_e & ~tau_is_mu & tau_match_genjet
-    # 4. Everything else → fake (unclassified)
-    tau_is_hadtau = tau_match_genvistau
-    tau_is_other_fake = ~tau_is_hadtau & ~tau_is_e & ~tau_is_mu & ~tau_is_jet
-    # consolidate: jet category absorbs other_fake too
-    tau_is_jet  = tau_is_jet | tau_is_other_fake
+    # ── HadTaus ──────────────────────────────────────────────────────────────
+    tau_is_hadtau = (tau_flav == 5)                            # genuine hadronic tau
+    tau_is_e      = (tau_flav == 1) | (tau_flav == 3)          # e -> tau fake
+    tau_is_mu     = (tau_flav == 2) | (tau_flav == 4)          # mu -> tau fake
+    tau_is_jet    = (tau_flav == 0)                            # jet -> tau fake
 
     # Per-type genuine masks (non-jet)
     e_is_genuine   = ~e_is_jet
     mu_is_genuine  = ~mu_is_jet
-    tau_is_genuine = ~tau_is_jet
+    tau_is_genuine = tau_is_hadtau
 
-    # Charge flips
-    e_is_flip = _get_charge_flip_mask(e_sel, e_gen_pdg)
-    mu_is_flip = _get_charge_flip_mask(mu_sel, mu_gen_pdg)
-    tau_is_flip = _get_charge_flip_mask(tau_sel, tau_gen_pdg)
+    # Charge flips: not derivable from genPartFlav alone -> set to zero
+    e_is_flip = ak.zeros_like(e_flav, dtype=bool)
+    mu_is_flip = ak.zeros_like(mu_flav, dtype=bool)
+    tau_is_flip = ak.zeros_like(tau_flav, dtype=bool)
 
     # Event-level counts
     selLeptons_numGenMatchedLeptons = ak.sum(e_is_lepton, axis=1) + ak.sum(mu_is_lepton, axis=1)
@@ -190,7 +149,7 @@ def gen_matching_selection(
     selHadTaus_numGenMatchedMuons = ak.sum(tau_is_mu, axis=1)
     selHadTaus_numGenMatchedJets = ak.sum(tau_is_jet, axis=1)
 
-    # Event category (Run2 priority)
+    # Event category (Run2-style priority, unchanged)
     is_fakes = (
         (apply_lepton_gen_matching & (selLeptons_numGenMatchedJets >= 1)) |
         (apply_hadTau_gen_matching & (selHadTaus_numGenMatchedJets >= 1))
@@ -216,9 +175,6 @@ def gen_matching_selection(
         gen_match_tau_category_np[tau_fake_np] = "faketau"
         gen_match_tau_category_np[~tau_fake_np] = "gentau"
     gen_match_tau_category = ak.Array(gen_match_tau_category_np)
-
-    # Convenience columns
-    nFake = selLeptons_numGenMatchedJets + selHadTaus_numGenMatchedJets
 
     # ── B-jet veto (same working points as categorization/default.py) ─────────
     # passes_bveto = True when the event would pass the b-veto used in the SR:
@@ -251,7 +207,7 @@ def gen_matching_selection(
     events = set_ak_column(events, "selHadTaus_numGenMatchedMuons", selHadTaus_numGenMatchedMuons)
     events = set_ak_column(events, "selHadTaus_numGenMatchedJets", selHadTaus_numGenMatchedJets)
     events = set_ak_column(events, "passes_bveto", passes_bveto)
-    
+
     return events, SelectionResult(
         steps={
             "gen_matching": full_like(events.event, True, dtype=bool),  # No event rejection

@@ -33,7 +33,7 @@ import multilepton.production.processes as process_producers
 
 from multilepton.selection.trigger import trigger_selection
 from multilepton.selection.lepton import lepton_selection
-from multilepton.selection.gen_selector_based_on_channel_0 import gen_matching_selection
+from multilepton.selection.gen_selector import gen_matching_selection
 from multilepton.selection.gen_hh_selector import hh_truth_selector
 from multilepton.selection.jet import jet_selection
 from multilepton.production.btag import btag_weights_deepjet, btag_weights_pnet
