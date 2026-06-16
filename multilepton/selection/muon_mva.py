@@ -5,7 +5,6 @@ Loads pre-trained XGBoost model and applies it to muon events.
 
 import os
 import pickle
-import joblib
 from columnflow.util import maybe_import
 
 
@@ -17,11 +16,11 @@ _FEATURES_PATH = os.path.join(_MODEL_DIR, "mu_features.pkl")
 
 # Default feature list (fallback if loading fails)
 _DEFAULT_MUON_FEATURES = [
-    'pt', 'eta',
-    'Irel_neutral', 'Irel_charged',
-    'pratio', 'ntracks', 'btagPNetB',
-    'log_dxy', 'log_dz', 'sip3d',
-    'segmentComp', 'nTrackerLayers',
+    "pt", "eta",
+    "Irel_neutral", "Irel_charged",
+    "pratio", "ntracks", "btagPNetB",
+    "log_dxy", "log_dz", "sip3d",
+    "segmentComp", "nTrackerLayers",
 ]
 
 # Singleton cache for model and scaler (loaded once)
@@ -33,20 +32,20 @@ _features = None
 def _load_model():
     """Load and cache the trained model and scaler with robust fallbacks."""
     global _model, _scaler, _features
-    joblib =maybe_import("joblib")  # Lazy import for joblib
+    joblib = maybe_import("joblib")  # Lazy import for joblib
     if _model is None:
         # Try to load model
         model_error = None
         if os.path.exists(_MODEL_PATH):
             try:
                 with open(_MODEL_PATH, "rb") as f:
-                    _model = pickle.load(f, encoding='latin1')
+                    _model = pickle.load(f, encoding="latin1")
             except Exception as e:
                 model_error = e
                 _model = None
         else:
             model_error = FileNotFoundError(f"Model not found at {_MODEL_PATH}")
-        
+
         # Try to load scaler (saved via joblib.dump in training)
         scaler_error = None
         if os.path.exists(_SCALER_PATH):
@@ -57,19 +56,17 @@ def _load_model():
                 _scaler = None
         else:
             scaler_error = FileNotFoundError(f"Scaler not found at {_SCALER_PATH}")
-        
+
         # Try to load features
-        features_error = None
         if os.path.exists(_FEATURES_PATH):
             try:
                 with open(_FEATURES_PATH, "rb") as f:
-                    _features = pickle.load(f, encoding='latin1')
-            except Exception as e:
-                features_error = e
+                    _features = pickle.load(f, encoding="latin1")
+            except Exception:
                 _features = None
         else:
-            features_error = FileNotFoundError(f"Features not found at {_FEATURES_PATH}")
-        
+            _features = None
+
         # If model or scaler failed, raise an exception
         # (features failing is non-critical, we have defaults)
         if model_error is not None:
@@ -80,12 +77,12 @@ def _load_model():
     return _model, _scaler, _features
 
 
-def compute_muon_mva_score(events) -> "ak.Array":
+def compute_muon_mva_score(events) -> "ak.Array":  # noqa: F821
     """
     Compute custom muon MVA scores using trained XGBoost model.
 
     Expected muon features (12 total):
-    'pt', 'eta', 'Irel_neutral', 'Irel_charged', 
+    'pt', 'eta', 'Irel_neutral', 'Irel_charged',
     'pratio', 'ntracks', 'btagPNetB',
     'log_dxy', 'log_dz', 'sip3d',
     'segmentComp', 'nTrackerLayers'
@@ -112,11 +109,10 @@ def compute_muon_mva_score(events) -> "ak.Array":
         return ak.to_numpy(ak.flatten(branch)).astype(np.float32)
 
     # Extract basic muon properties (flatten to 1D)
-    mu_pt    = _flat(muon.pt)
-    mu_eta   = _flat(muon.eta)
-    mu_phi   = _flat(muon.phi)
-    mu_dxy   = _flat(muon.dxy)
-    mu_dz    = _flat(muon.dz)
+    mu_pt = _flat(muon.pt)
+    mu_eta = _flat(muon.eta)
+    mu_dxy = _flat(muon.dxy)
+    mu_dz = _flat(muon.dz)
     mu_sip3d = _flat(muon.sip3d)
 
     # Handle optional branches - check if they exist and are not None
@@ -161,7 +157,7 @@ def compute_muon_mva_score(events) -> "ak.Array":
 
     # Check validity: jetIdx >= 0 and jetIdx < num_jets (both per-muon)
     # Both sides are now plain int32 arrays — bitwise_and is safe
-    valid_ak     = (mu_jetidx_ak >= 0) & (mu_jetidx_ak < n_jets_per_muon)
+    valid_ak = (mu_jetidx_ak >= 0) & (mu_jetidx_ak < n_jets_per_muon)
     jidx_safe_ak = ak.where(valid_ak, mu_jetidx_ak, 0)  # 0 as safe fallback
 
     # Pad jets to avoid index out of bounds
@@ -172,15 +168,15 @@ def compute_muon_mva_score(events) -> "ak.Array":
         if branch is None:
             return np.zeros_like(mu_pt)
         try:
-            padded   = ak.pad_none(branch, max_jets, clip=True)
+            padded = ak.pad_none(branch, max_jets, clip=True)
             gathered = padded[jidx_safe_ak]
-            filled   = ak.fill_none(gathered, 0.0)
+            filled = ak.fill_none(gathered, 0.0)
             return _flat(filled)
         except (AttributeError, ValueError, TypeError):
             return np.zeros_like(mu_pt)
 
     # Get matched jet properties
-    matched_jpt  = _gather_jet(jet.pt)
+    matched_jpt = _gather_jet(jet.pt)
 
     try:
         bpnet_branch = jet.btagPNetB
@@ -211,32 +207,32 @@ def compute_muon_mva_score(events) -> "ak.Array":
 
     # log-transformed IP variables
     log_dxy = np.log(np.abs(mu_dxy) + 1e-10).astype(np.float32)
-    log_dz  = np.log(np.abs(mu_dz)  + 1e-10).astype(np.float32)
+    log_dz = np.log(np.abs(mu_dz) + 1e-10).astype(np.float32)
 
     # B-tagging and nTracks (0 if no matched jet)
     btagPNetB = np.where(valid_flat, matched_bpnet, 0.0).astype(np.float32)
-    ntracks   = np.where(valid_flat, matched_ncon,  0.0).astype(np.float32)
+    ntracks = np.where(valid_flat, matched_ncon, 0.0).astype(np.float32)
 
     # Build feature dictionary with all computed features
     computed = {
-        "pt":             mu_pt,
-        "eta":            mu_eta,
-        "Irel_neutral":   Irel_neutral,
-        "Irel_charged":   Irel_charged,
-        "pratio":         pratio,
-        "ntracks":        ntracks,
-        "btagPNetB":      btagPNetB,
-        "log_dxy":        log_dxy,
-        "log_dz":         log_dz,
-        "sip3d":          mu_sip3d,
-        "segmentComp":    mu_seg,
+        "pt": mu_pt,
+        "eta": mu_eta,
+        "Irel_neutral": Irel_neutral,
+        "Irel_charged": Irel_charged,
+        "pratio": pratio,
+        "ntracks": ntracks,
+        "btagPNetB": btagPNetB,
+        "log_dxy": log_dxy,
+        "log_dz": log_dz,
+        "sip3d": mu_sip3d,
+        "segmentComp": mu_seg,
         "nTrackerLayers": mu_nlayers,
     }
 
     # Build feature matrix in correct order
     # Use saved features if available, otherwise use defaults
     feat_order = _features if _features is not None else _DEFAULT_MUON_FEATURES
-    
+
     X_list = []
     for feat in feat_order:
         if feat in computed:

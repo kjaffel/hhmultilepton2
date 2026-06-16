@@ -1,0 +1,99 @@
+[1mdiff --git a/multilepton/config/analysis_multilepton.py b/multilepton/config/analysis_multilepton.py[m
+[1mindex 11d7796..c947afd 100644[m
+[1m--- a/multilepton/config/analysis_multilepton.py[m
+[1m+++ b/multilepton/config/analysis_multilepton.py[m
+[36m@@ -126,6 +126,5 @@[m [mfor module, name, cid in datasets:[m
+         campaign_attr=f"campaign_{module.split('.')[-1]}",[m
+         config_name=name,[m
+         config_id=cid,[m
+[31m-        add_limited=True,[m
+[31m-        limit_dataset_files=1,[m
+[32m+[m[32m        add_limited=False,[m
+     )[m
+[1mdiff --git a/multilepton/data/mva_model/ele_features.pkl b/multilepton/data/mva_model/ele_features.pkl[m
+[1mnew file mode 100644[m
+[1mindex 0000000..940df42[m
+Binary files /dev/null and b/multilepton/data/mva_model/ele_features.pkl differ
+[1mdiff --git a/multilepton/data/mva_model/ele_scaler.pkl b/multilepton/data/mva_model/ele_scaler.pkl[m
+[1mnew file mode 100644[m
+[1mindex 0000000..db4fa40[m
+Binary files /dev/null and b/multilepton/data/mva_model/ele_scaler.pkl differ
+[1mdiff --git a/multilepton/data/mva_model/ele_xgb_clf.pkl b/multilepton/data/mva_model/ele_xgb_clf.pkl[m
+[1mnew file mode 100644[m
+[1mindex 0000000..a880a3d[m
+Binary files /dev/null and b/multilepton/data/mva_model/ele_xgb_clf.pkl differ
+[1mdiff --git a/multilepton/data/mva_model/mu_features.pkl b/multilepton/data/mva_model/mu_features.pkl[m
+[1mnew file mode 100644[m
+[1mindex 0000000..18469b7[m
+Binary files /dev/null and b/multilepton/data/mva_model/mu_features.pkl differ
+[1mdiff --git a/multilepton/data/mva_model/mu_scaler.pkl b/multilepton/data/mva_model/mu_scaler.pkl[m
+[1mnew file mode 100644[m
+[1mindex 0000000..aeedea2[m
+Binary files /dev/null and b/multilepton/data/mva_model/mu_scaler.pkl differ
+[1mdiff --git a/multilepton/data/mva_model/mu_xgb_clf.pkl b/multilepton/data/mva_model/mu_xgb_clf.pkl[m
+[1mnew file mode 100644[m
+[1mindex 0000000..06a683f[m
+Binary files /dev/null and b/multilepton/data/mva_model/mu_xgb_clf.pkl differ
+[1mdiff --git a/multilepton/selection/electron_mva.py b/multilepton/selection/electron_mva.py[m
+[1mindex ad77908..f382c72 100644[m
+[1m--- a/multilepton/selection/electron_mva.py[m
+[1m+++ b/multilepton/selection/electron_mva.py[m
+[36m@@ -5,11 +5,11 @@[m [mLoads pre-trained XGBoost model and applies it to electron events.[m
+ [m
+ import os[m
+ import pickle[m
+[31m-import joblib[m
+[32m+[m[32mfrom columnflow.util import maybe_import[m
+ [m
+ [m
+ # Model paths (relative to this module or absolute)[m
+[31m-_MODEL_DIR = "/eos/user/m/mkumari/hhmultilepton2/multilepton/mva_model"[m
+[32m+[m[32m_MODEL_DIR = f"{os.path.dirname(os.path.abspath(__file__))}/../data/mva_model"[m
+ _MODEL_PATH = os.path.join(_MODEL_DIR, "ele_xgb_clf.pkl")[m
+ _SCALER_PATH = os.path.join(_MODEL_DIR, "ele_scaler.pkl")[m
+ _FEATURES_PATH = os.path.join(_MODEL_DIR, "ele_features.pkl")[m
+[36m@@ -32,7 +32,7 @@[m [m_features = None[m
+ def _load_model():[m
+     """Load and cache the trained model and scaler with robust fallbacks."""[m
+     global _model, _scaler, _features[m
+[31m-[m
+[32m+[m[32m    joblib = maybe_import("joblib")  # Lazy import for joblib[m
+     if _model is None:[m
+         # Try to load model[m
+         model_error = None[m
+[1mdiff --git a/multilepton/selection/muon_mva.py b/multilepton/selection/muon_mva.py[m
+[1mindex 0fbd9d4..772749c 100644[m
+[1m--- a/multilepton/selection/muon_mva.py[m
+[1m+++ b/multilepton/selection/muon_mva.py[m
+[36m@@ -6,10 +6,11 @@[m [mLoads pre-trained XGBoost model and applies it to muon events.[m
+ import os[m
+ import pickle[m
+ import joblib[m
+[32m+[m[32mfrom columnflow.util import maybe_import[m
+ [m
+ [m
+ # Model paths (relative to this module or absolute)[m
+[31m-_MODEL_DIR = "/eos/user/m/mkumari/hhmultilepton2/multilepton/mva_model"[m
+[32m+[m[32m_MODEL_DIR = f"{os.path.dirname(os.path.abspath(__file__))}/../data/mva_model"[m
+ _MODEL_PATH = os.path.join(_MODEL_DIR, "mu_xgb_clf.pkl")[m
+ _SCALER_PATH = os.path.join(_MODEL_DIR, "mu_scaler.pkl")[m
+ _FEATURES_PATH = os.path.join(_MODEL_DIR, "mu_features.pkl")[m
+[36m@@ -32,7 +33,7 @@[m [m_features = None[m
+ def _load_model():[m
+     """Load and cache the trained model and scaler with robust fallbacks."""[m
+     global _model, _scaler, _features[m
+[31m-[m
+[32m+[m[32m    joblib =maybe_import("joblib")  # Lazy import for joblib[m
+     if _model is None:[m
+         # Try to load model[m
+         model_error = None[m
+[1mdiff --git a/sandboxes/multilepton.txt b/sandboxes/multilepton.txt[m
+[1mindex 870ead5..a831f91 100644[m
+[1m--- a/sandboxes/multilepton.txt[m
+[1m+++ b/sandboxes/multilepton.txt[m
+[36m@@ -12,3 +12,4 @@[m [mboost-histogram==1.5.2[m
+ # ML dependencies for custom lepton MVA[m
+ xgboost>=2.0.0[m
+ scikit-learn>=1.0.0[m
+[32m+[m[32mjoblib>=1.5.3[m
+\ No newline at end of file[m

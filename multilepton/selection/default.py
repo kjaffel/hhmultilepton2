@@ -83,7 +83,7 @@ def get_bad_events(self: Selector, events: ak.Array) -> ak.Array:
 @selector(
     uses={
         process_ids, json_filter, met_filters,
-        trigger_selection, lepton_selection, gen_matching_selection,hh_truth_selector, jet_selection,
+        trigger_selection, lepton_selection, gen_matching_selection, hh_truth_selector, jet_selection,
         mc_weight, pu_weight, ps_weights, btag_weights_deepjet,
         cutflow_features, attach_coffea_behavior, patch_ecalBadCalibFilter,
         IF_RUN_3_NOT_NANO_V15(jet_veto_map), IF_RUN_3(btag_weights_pnet),
@@ -91,7 +91,7 @@ def get_bad_events(self: Selector, events: ak.Array) -> ak.Array:
     },
     produces={
         process_ids, cutflow_features, IF_RUN_3(btag_weights_pnet),
-        trigger_selection, lepton_selection, gen_matching_selection,hh_truth_selector, jet_selection,
+        trigger_selection, lepton_selection, gen_matching_selection, hh_truth_selector, jet_selection,
         mc_weight, pu_weight, ps_weights, btag_weights_deepjet,
         IF_DATASET_HAS_LHE_WEIGHTS(pdf_weights, murmuf_weights),
     },

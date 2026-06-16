@@ -257,7 +257,7 @@ def electron_selection(
         # Try to use custom trained XGBoost model
         try:
             promptMVA = compute_electron_mva_score(events)
-            
+
         except Exception as e:
             # Fallback to NanoAOD MVA if custom model fails
             logger.warning(f"Failed to load custom electron MVA model ({e}), falling back to NanoAOD MVA")
@@ -267,7 +267,7 @@ def electron_selection(
             else:
                 promptMVA = events.Electron.mvaTTH
                 logger.info("Using NanoAOD mvaTTH (v<14) as fallback")
-    
+
     elif electron_mva_source == "nanoaod":
         # Use NanoAOD default MVA based on version
         if "promptMVA" in events.Electron.fields:
@@ -278,7 +278,7 @@ def electron_selection(
             # nano <v14
             promptMVA = events.Electron.mvaTTH
             logger.info("Using NanoAOD mvaTTH (v<14) for electron selection")
-    
+
     else:
         raise ValueError(f"Invalid electron_mva_source '{electron_mva_source}'. "
                        f"Choose from: 'custom' (XGBoost model), 'nanoaod' (version-based default)")
@@ -464,13 +464,13 @@ def muon_selection(
         #    min_pt = 23.0 if is_single else 20.0
         # else:
         #    min_pt = 26.0 if is_single else 22.0
-        
+
         # Select muon MVA based on configured source
         if muon_mva_source == "custom":
             # Try to use custom trained XGBoost model
             try:
                 promptMVA = compute_muon_mva_score(events)
-                
+
             except Exception as e:
                 # Fallback to NanoAOD MVA if custom model fails
                 logger.warning(f"Failed to load custom muon MVA model ({e}), falling back to NanoAOD MVA")
@@ -480,7 +480,7 @@ def muon_selection(
                 else:
                     promptMVA = events.Muon.mvaTTH
                     logger.info("Using NanoAOD mvaTTH (v<14) as fallback")
-        
+
         elif muon_mva_source == "nanoaod":
             # Use NanoAOD default MVA based on version
             if "promptMVA" in events.Muon.fields:
@@ -491,7 +491,7 @@ def muon_selection(
                 # nano <v14
                 promptMVA = events.Muon.mvaTTH
                 logger.info("Using NanoAOD mvaTTH (v<14)")
-        
+
         else:
             raise ValueError(f"Invalid muon_mva_source '{muon_mva_source}'. "
                            f"Choose from: 'custom' (XGBoost model), 'nanoaod' (version-based default)")
@@ -759,12 +759,12 @@ def tau_trigger_matching(
         # new columns
         "channel_id", "leptons_os", "tau2_isolated",
         "single_triggered", "cross_triggered",
-        "trig_match",  "trig_match_bdt", "matched_trigger_ids",
+        "trig_match", "trig_match_bdt", "matched_trigger_ids",
         "tight_sel", "tight_sel_bdt",
-        "ok_bdt_eormu", "ok_bdt_eormu_bveto",
+        "ok_bdt_eormu",
         "TauIso", "TauNoID",
         "MuonLoose", "MuonTight", "Muon.cone_pt", "Muon.muonLeptoMVA_hh",
-        "ElectronLoose", "ElectronTight", "Electron.cone_pt", 
+        "ElectronLoose", "ElectronTight", "Electron.cone_pt",
     },
 )
 def lepton_selection(
@@ -791,7 +791,7 @@ def lepton_selection(
     try:
         muon_mva_scores = compute_muon_mva_score(events)
         events = set_ak_column(events, ("Muon", "muonLeptoMVA_hh"), muon_mva_scores)
-        
+
     except Exception as e:
         print(f"Failed to compute custom muon MVA ({e}), creating dummy column with zeros")
         events = set_ak_column(events, ("Muon", "muonLeptoMVA_hh"), ak.zeros_like(events.Muon.pt))
@@ -800,7 +800,7 @@ def lepton_selection(
     try:
         electron_mva_scores = compute_electron_mva_score(events)
         events = set_ak_column(events, ("Electron", "electronLeptoMVA_hh"), electron_mva_scores)
-       
+
     except Exception as e:
         print(f"Failed to compute custom electron MVA ({e}), creating dummy column with zeros")
         events = set_ak_column(events, ("Electron", "electronLeptoMVA_hh"), ak.zeros_like(events.Electron.pt))

@@ -16,11 +16,11 @@ _FEATURES_PATH = os.path.join(_MODEL_DIR, "ele_features.pkl")
 
 # Default feature list (fallback if loading fails)
 _DEFAULT_ELECTRON_FEATURES = [
-    'pt', 'eta',
-    'Irel_neutral', 'Irel_charged',
-    'pratio', 'prel_T', 'ntracks', 'btagPNetB',
-    'log_dxy', 'log_dz', 'sip3d',
-    'hoe', 'sieie', 'deltaEtaSC', 'eInvMinusPInv', 'mvaNoIso',
+    "pt", "eta",
+    "Irel_neutral", "Irel_charged",
+    "pratio", "prel_T", "ntracks", "btagPNetB",
+    "log_dxy", "log_dz", "sip3d",
+    "hoe", "sieie", "deltaEtaSC", "eInvMinusPInv", "mvaNoIso",
 ]
 
 # Singleton cache for model and scaler (loaded once)
@@ -39,13 +39,13 @@ def _load_model():
         if os.path.exists(_MODEL_PATH):
             try:
                 with open(_MODEL_PATH, "rb") as f:
-                    _model = pickle.load(f, encoding='latin1')
+                    _model = pickle.load(f, encoding="latin1")
             except Exception as e:
                 model_error = e
                 _model = None
         else:
             model_error = FileNotFoundError(f"Model not found at {_MODEL_PATH}")
-        
+
         # Try to load scaler (saved via joblib.dump in training)
         scaler_error = None
         if os.path.exists(_SCALER_PATH):
@@ -56,19 +56,17 @@ def _load_model():
                 _scaler = None
         else:
             scaler_error = FileNotFoundError(f"Scaler not found at {_SCALER_PATH}")
-        
+
         # Try to load features
-        features_error = None
         if os.path.exists(_FEATURES_PATH):
             try:
                 with open(_FEATURES_PATH, "rb") as f:
-                    _features = pickle.load(f, encoding='latin1')
-            except Exception as e:
-                features_error = e
+                    _features = pickle.load(f, encoding="latin1")
+            except Exception:
                 _features = None
         else:
-            features_error = FileNotFoundError(f"Features not found at {_FEATURES_PATH}")
-        
+            _features = None
+
         # If model or scaler failed, raise an exception
         # (features failing is non-critical, we have defaults)
         if model_error is not None:
@@ -79,7 +77,7 @@ def _load_model():
     return _model, _scaler, _features
 
 
-def compute_electron_mva_score(events) -> "ak.Array":
+def compute_electron_mva_score(events) -> "ak.Array":  # noqa: F821
     """
     Compute custom electron MVA scores using trained XGBoost model.
 
@@ -111,11 +109,11 @@ def compute_electron_mva_score(events) -> "ak.Array":
         return ak.to_numpy(ak.flatten(branch)).astype(np.float32)
 
     # Extract basic electron properties (flatten to 1D)
-    el_pt    = _flat(electron.pt)
-    el_eta   = _flat(electron.eta)
-    el_phi   = _flat(electron.phi)
-    el_dxy   = _flat(electron.dxy)
-    el_dz    = _flat(electron.dz)
+    el_pt = _flat(electron.pt)
+    el_eta = _flat(electron.eta)
+    el_phi = _flat(electron.phi)
+    el_dxy = _flat(electron.dxy)
+    el_dz = _flat(electron.dz)
     el_sip3d = _flat(electron.sip3d)
 
     # Handle optional branches - check if they exist and are not None
@@ -175,7 +173,7 @@ def compute_electron_mva_score(events) -> "ak.Array":
 
     # Check validity: jetIdx >= 0 and jetIdx < num_jets (both per-electron)
     # Both sides are now plain int32 arrays — bitwise_and is safe
-    valid_ak     = (el_jetidx_ak >= 0) & (el_jetidx_ak < n_jets_per_electron)
+    valid_ak = (el_jetidx_ak >= 0) & (el_jetidx_ak < n_jets_per_electron)
     jidx_safe_ak = ak.where(valid_ak, el_jetidx_ak, 0)  # 0 as safe fallback
 
     # Pad jets to avoid index out of bounds
@@ -186,15 +184,15 @@ def compute_electron_mva_score(events) -> "ak.Array":
         if branch is None:
             return np.zeros_like(el_pt)
         try:
-            padded   = ak.pad_none(branch, max_jets, clip=True)
+            padded = ak.pad_none(branch, max_jets, clip=True)
             gathered = padded[jidx_safe_ak]
-            filled   = ak.fill_none(gathered, 0.0)
+            filled = ak.fill_none(gathered, 0.0)
             return _flat(filled)
         except (AttributeError, ValueError, TypeError):
             return np.zeros_like(el_pt)
 
     # Get matched jet properties
-    matched_jpt  = _gather_jet(jet.pt)
+    matched_jpt = _gather_jet(jet.pt)
     matched_jphi = _gather_jet(jet.phi)
 
     try:
@@ -227,7 +225,7 @@ def compute_electron_mva_score(events) -> "ak.Array":
         ).astype(np.float32)
 
     # prel_T = abs(electron_pt * sin(delta_phi))
-    dphi   = _delta_phi(el_phi, matched_jphi)
+    dphi = _delta_phi(el_phi, matched_jphi)
     prel_T = np.where(
         valid_flat,
         np.abs(el_pt * np.sin(dphi)),
@@ -240,36 +238,36 @@ def compute_electron_mva_score(events) -> "ak.Array":
 
     # log-transformed IP variables
     log_dxy = np.log(np.abs(el_dxy) + 1e-10).astype(np.float32)
-    log_dz  = np.log(np.abs(el_dz)  + 1e-10).astype(np.float32)
+    log_dz = np.log(np.abs(el_dz) + 1e-10).astype(np.float32)
 
     # B-tagging and nTracks (0 if no matched jet)
     btagPNetB = np.where(valid_flat, matched_bpnet, 0.0).astype(np.float32)
-    ntracks   = np.where(valid_flat, matched_ncon,  0.0).astype(np.float32)
+    ntracks = np.where(valid_flat, matched_ncon, 0.0).astype(np.float32)
 
     # Build feature dictionary with all computed features
     computed = {
-        "pt":             el_pt,
-        "eta":            el_eta,
-        "Irel_neutral":   Irel_neutral,
-        "Irel_charged":   Irel_charged,
-        "pratio":         pratio,
-        "prel_T":         prel_T,
-        "ntracks":        ntracks,
-        "btagPNetB":      btagPNetB,
-        "log_dxy":        log_dxy,
-        "log_dz":         log_dz,
-        "sip3d":          el_sip3d,
-        "hoe":            el_hoe,
-        "sieie":          el_sieie,
-        "deltaEtaSC":     el_deltaEtaSC,
-        "eInvMinusPInv":  el_eInvMinusPInv,
-        "mvaNoIso":       el_mvaNoIso,
+        "pt": el_pt,
+        "eta": el_eta,
+        "Irel_neutral": Irel_neutral,
+        "Irel_charged": Irel_charged,
+        "pratio": pratio,
+        "prel_T": prel_T,
+        "ntracks": ntracks,
+        "btagPNetB": btagPNetB,
+        "log_dxy": log_dxy,
+        "log_dz": log_dz,
+        "sip3d": el_sip3d,
+        "hoe": el_hoe,
+        "sieie": el_sieie,
+        "deltaEtaSC": el_deltaEtaSC,
+        "eInvMinusPInv": el_eInvMinusPInv,
+        "mvaNoIso": el_mvaNoIso,
     }
 
     # Build feature matrix in correct order
     # Use saved features if available, otherwise use defaults
     feat_order = _features if _features is not None else _DEFAULT_ELECTRON_FEATURES
-    
+
     X_list = []
     for feat in feat_order:
         if feat in computed:

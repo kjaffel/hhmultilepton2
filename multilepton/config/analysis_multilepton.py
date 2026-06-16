@@ -67,6 +67,7 @@ def add_lazy_config(
     def create_factory(
         config_id: int,
         config_name_postfix: str = "",
+        file_limit: int | None = None,
     ):
         def factory(configs):
             mod = importlib.import_module(campaign_module)
@@ -78,8 +79,12 @@ def add_lazy_config(
                 config_id=config_id,
                 **kwargs,
             )
-            # Apply limit from ANALYSIS level to this CONFIG
-            limit = analysis_multilepton.x.limit_dataset_files
+            limit = (
+                file_limit
+                if file_limit is not None
+                else analysis_multilepton.x.limit_dataset_files
+            )
+
             if limit > 0:
                 print(f"[Config {config.name}] Applying limit_dataset_files={limit}")
                 for dataset in config.datasets:
@@ -126,5 +131,5 @@ for module, name, cid in datasets:
         campaign_attr=f"campaign_{module.split('.')[-1]}",
         config_name=name,
         config_id=cid,
-        add_limited=False,
+        add_limited=True,  # Add a limited version of each config for testing purposes
     )
