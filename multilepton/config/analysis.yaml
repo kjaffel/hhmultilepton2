@@ -407,15 +407,30 @@ channels:
     id: 32
     label: "$\\tau_{h}\\tau_{h}\\tau_{h}\\tau_{h}$"
   # 2lss 1 or more tau channels
-  c2e0or1tau: 
+  c2eSS1tau: 
     id: 33
-    label: "$ee,\\leq 1\\ \\tau_{h}$"
-  cemu0or1tau: 
+    label: "$ee\\tau_{h}$"
+  cemuSS1tau: 
     id: 34
-    label: "$e\\mu, \\leq 1\\ \\tau_{h}$"
-  c2mu0or1tau: 
+    label: "$e\\mu\\tau_{h}$"
+  c2muSS1tau: 
     id: 35
-    label: "$\\mu\\mu, \\leq 1\\ \\tau_{h}$"
+    label: "$\\mu\\mu\\tau_{h}$"
+  c2eSS: 
+    id: 36
+    label: "$ee$"
+  cemuSS: 
+    id: 37
+    label: "$e\\mu$"
+  c2muSS: 
+    id: 38
+    label: "$\\mu\\mu$"
+  ce2tau: 
+    id: 39
+    label: "$e\\tau_{h}\\tau_{h}$"
+  cmu2tau: 
+    id: 40
+    label: "$\\mu\\tau_{h}\\tau_{h}$"
   ceormu: 
     id: 10000
     label: "$e or \\mu$"

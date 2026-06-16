@@ -25,27 +25,29 @@ multileptons_categories = {
     "cat1l3tau_SB": {"id": 1010, "selection": "cat_1l3tau_SB", "label": r"$1\ell 3\tau_{h}$ SB"},
     "cat4tau_SR": {"id": 1011, "selection": "cat_4tau_SR", "label": r"$4\tau_{h}$ SR"},
     "cat4tau_SB": {"id": 1012, "selection": "cat_4tau_SB", "label": r"$4\tau_{h}$ SB"},
-    "cat2l0or1tau_SR_SS": {"id": 1013, "selection": "cat_2l0or1tau_SR_SS", "label": r"$2\ell\  \leq 1\,\tau_{h}$ SR, SS"},  # noqa: E501
-    "cat2l0or1tau_SR_OS": {"id": 1014, "selection": "cat_2l0or1tau_SR_OS", "label": r"$2\ell\  \leq 1\,\tau_{h}$ SR, OS"},  # noqa: E501
-    "cat2l0or1tau_SB_SS": {"id": 1015, "selection": "cat_2l0or1tau_SB_SS", "label": r"$2\ell\  \leq 1\,\tau_{h}$ SB, SS"},  # noqa: E501
-    "cat2l0or1tau_SB_OS": {"id": 1016, "selection": "cat_2l0or1tau_SB_OS", "label": r"$2\ell\  \leq 1\,\tau_{h}$ SB, OS"},  # noqa: E501
+    "cat2lSS1tauOS_SR": {"id": 1013, "selection": "cat_2lSS1tauOS_SR", "label": r"$2\ell SS\,  1\tau_{h}$ SR"},
+    "cat2lOS1tauSS_SR": {"id": 1014, "selection": "cat_2lOS1tauSS_SR", "label": r"$2\ell OS\,  1\tau_{h}$ SR"},
+    "cat2lSS1tauOS_SB": {"id": 1015, "selection": "cat_2lSS1tauOS_SB", "label": r"$2\ell SS\,  1\tau_{h}$ SB"},
+    "cat2lOS1tauSS_SB": {"id": 1016, "selection": "cat_2lOS1tauSS_SB", "label": r"$2\ell OS\,  1\tau_{h}$ SB"},
+    "cat2lSS0tauOS_SR": {"id": 1017, "selection": "cat_2lSS_SR", "label": r"$2\ell SS\,  0\tau_{h}$ SR"},
+    "cat2lOS0tauSS_SR": {"id": 1018, "selection": "cat_2lOS_SR", "label": r"$2\ell OS\,  0\tau_{h}$ SR"},
+    "cat2lSS0tauOS_SB": {"id": 1019, "selection": "cat_2lSS_SB", "label": r"$2\ell SS\,  0\tau_{h}$ SB"},
+    "cat2lOS0tauSS_SB": {"id": 1020, "selection": "cat_2lOS_SB", "label": r"$2\ell OS\,  0\tau_{h}$ SB"},
+    "cat1l2tau_SR": {"id": 1021, "selection": "cat_1l2tau_SR", "label": r"$1\ell 2\tau_{h}$ SR"},
+    "cat1l2tau_SB": {"id": 1022, "selection": "cat_1l2tau_SB", "label": r"$1\ell 2\tau_{h}$ SB"},
     # Loose category for BDT trainning + tight + trigmatch
-    "ceormu_bveto": {"id": 15000, "selection": "cat_e_or_mu_bveto", "label": r"e or $\mu$ bveto on", "tags": {"ceormu_bveto"}},  # noqa: E501
+    "ceormu_bveto": {"id": 15000, "selection": "cat_eormu_bveto", "label": r"e or $\mu$ bveto on", "tags": {"ceormu_bveto"}},  # noqa: E501
+    # "ceormu": {"id": 15001, "selection": "cat_eormu", "label": r"e or $\mu$", "tags": {"ceormu"}},  # noqa: E501
     # bveto
     "bveto_on": {"id": 30001, "selection": "cat_bveto_on", "label": "bveto on"},
-    "bveto_off": {"id": 30002, "selection": "cat_bveto_off", "label": "bveto off"},
     # tight/nontight
     "tight_bdt": {"id": 11000, "selection": "cat_tight_bdt", "label": "tight", "tags": {"tight_bdt"}},
-    "nontight_bdt": {"id": 12000, "selection": "cat_nontight_bdt", "label": "fakeable", "tags": {"nontight_bdt"}},
     # trigmatch
     "trigmatch_bdt": {"id": 13000, "selection": "cat_trigmatch_bdt", "label": "trigger matched", "tags": {"trigmatch_bdt"}},  # noqa: E501
-    "nontrigmatch_bdt": {"id": 14000, "selection": "cat_nontrigmatch_bdt", "label": "trigger unmatched", "tags": {"nontrigmatch_bdt"}},  # noqa: E501
     # tight/nontight
     "tight": {"id": 10001, "selection": "cat_tight", "label": "tight", "tags": {"tight"}},
-    "nontight": {"id": 10002, "selection": "cat_nontight", "label": "fakeable", "tags": {"nontight"}},
     # trigmatch
     "trigmatch": {"id": 10003, "selection": "cat_trigmatch", "label": "trigger matched", "tags": {"trigmatch"}},
-    "nontrigmatch": {"id": 10004, "selection": "cat_nontrigmatch", "label": "trigger unmatched", "tags": {"nontrigmatch"}},  # noqa: E501
     # qcd regions
     "os": {"id": 10, "selection": "cat_os", "label": "OS", "tags": {"os"}},
     "ss": {"id": 11, "selection": "cat_ss", "label": "SS", "tags": {"ss"}},

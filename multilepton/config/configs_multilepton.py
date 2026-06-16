@@ -155,8 +155,8 @@ def nested_dict():
 # https://btv-wiki.docs.cern.ch/ScaleFactors
 def bTagWorkingPoints(year, run, campaign):
     getfromyear = year
-    if year == 2024:
-        getfromyear = 2023  # still missing FIXME once they are updated by BTV-POG
+    # if year == 2024:
+    #    getfromyear = 2023  # still missing FIXME once they are updated by BTV-POG
     fileName = law.LocalFileTarget(localizePOGSF(getfromyear, "BTV", "btagging.json.gz"))
     logger.info(f"Getting btagging working points and discriminator cuts from : {fileName}")
     ceval = load_correction_set(fileName)
@@ -166,6 +166,8 @@ def bTagWorkingPoints(year, run, campaign):
         valid_eras = ["2016APV", "2016", "2017", "2018"]
     elif run == 3:
         taggers = ["deepJet", "particleNet", "robustParticleTransformer", "particleNetMD"]
+        if year == 2024:
+            taggers.append("UParTAK4")
         valid_eras = ["2022", "2022EE", "2023", "2023BPix", "2024"]
     else:
         raise ValueError(f"Unsupported run: {run}")
@@ -911,6 +913,12 @@ def add_config(
             jec_sources=cfg.x.btag_sf_jec_sources,
             discriminator="btagPNetB",
         )
+        # add upart
+        # cfg.x.btag_sf_upartak4 = BTagSFConfig(
+        # correction_set="UParTAK4_shape",
+        # jec_sources=cfg.x.btag_sf_jec_sources,
+        # discriminator="btagUParTAK4B",
+        # )
 
     # =============================================
     # top pt reweighting
@@ -1001,6 +1009,7 @@ def add_config(
         register_shift_pair(cfg, f"jec_{jec_source}", jec_id, jec_aliases, {"jec"}, {"jec_source": jec_source})
 
         # link btag-related JEC sources
+        # add upart
         if ("" if jec_source == "Total" else jec_source) in cfg.x.btag_sf_jec_sources:
             btag_aliases = {
                 "normalized_btag_deepjet_weight": "normalized_btag_deepjet_weight_{name}",
@@ -1047,6 +1056,7 @@ def add_config(
         register_shift_pair(cfg, "eer", 94, {"Electron.pt": "Electron.pt_res_{direction}"}, {"eer"})
 
     # b-tag uncertainties
+    # add upart
     cfg.x.btag_unc_names = [
         "hf", "lf",
         f"hfstats1_{year}", f"hfstats2_{year}",
