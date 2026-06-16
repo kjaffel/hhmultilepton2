@@ -12,3 +12,4 @@ boost-histogram==1.5.2
 # ML dependencies for custom lepton MVA
 xgboost>=2.0.0
 scikit-learn>=1.0.0
+joblib>=1.5.3
