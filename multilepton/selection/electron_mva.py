@@ -5,8 +5,8 @@ Loads pre-trained XGBoost model and applies it to electron events.
 
 import os
 import pickle
-import joblib
 
+from columnflow.util import maybe_import
 
 # Model paths (relative to this module or absolute)
 _MODEL_DIR = "/eos/user/m/mkumari/hhmultilepton2/multilepton/mva_model"
@@ -32,6 +32,7 @@ _features = None
 def _load_model():
     """Load and cache the trained model and scaler with robust fallbacks."""
     global _model, _scaler, _features
+    joblib = maybe_import("joblib")
 
     if _model is None:
         # Try to load model
