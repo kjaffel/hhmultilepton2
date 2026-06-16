@@ -105,8 +105,14 @@ setup_multilepton() {
     # default job flavor settings (starting with naf / maxwell cluster defaults)
     # used by law.cfg and, in turn, modules/columnflow/tasks/framework/remote.py
     local cf_htcondor_flavor_default="cern_el9"
+    local cf_htcondor_memory_default=2GB
+    local cf_htcondor_disk_default=5GB
+    local cf_htcondor_logs_default=false
     local cf_slurm_flavor_default="manivald"
     local cf_slurm_partition_default="main"
+    local cf_slurm_cpus_default=1
+    local cf_slurm_mem_per_cpu_default=2GB
+
     local hname="$( hostname 2> /dev/null )"
     if [ "$?" = "0" ]; then
         # lxplus
@@ -115,9 +121,13 @@ setup_multilepton() {
         fi
     fi
     export CF_HTCONDOR_FLAVOR="${CF_HTCONDOR_FLAVOR:-${cf_htcondor_flavor_default}}"
+    export CF_HTCONDOR_MEMORY=${CF_HTCONDOR_MEMORY:-${cf_htcondor_memory_default}}
+    export CF_HTCONDOR_DISK=${CF_HTCONDOR_DISK:-${cf_htcondor_disk_default}}
+    export CF_HTCONDOR_LOGS=${CF_HTCONDOR_LOGS:-${cf_htcondor_logs_default}}
     export CF_SLURM_FLAVOR="${CF_SLURM_FLAVOR:-${cf_slurm_flavor_default}}"
     export CF_SLURM_PARTITION="${CF_SLURM_PARTITION:-${cf_slurm_partition_default}}"
-
+    export CF_SLURM_CPUS="${CF_SLURM_CPUS:-${cf_slurm_cpus_default}}"
+    export CF_SLURM_MEM_PER_CPU="${CF_SLURM_MEM_PER_CPU:-${cf_slurm_mem_per_cpu_default}}"
     # interactive setup
     if ! ${CF_REMOTE_ENV}; then
         cf_setup_interactive_body() {
@@ -188,7 +198,26 @@ setup_multilepton() {
     # finalize
     #
     export MULTILEPTON_SETUP="true"
-     PS1="\[\033[1;35m\][multilepton_venv]\[\033[0m\] \u@\h:\W\$ "
+    
+    # Save original PS1 if not already saved
+    if [ -z "$_OLD_MULTILEPTON_PS1" ]; then
+        export _OLD_MULTILEPTON_PS1="$PS1"
+    fi
+    
+    # Save original PATH and PYTHONPATH if not already saved
+    if [ -z "$_OLD_MULTILEPTON_PATH" ]; then
+        export _OLD_MULTILEPTON_PATH="$PATH"
+    fi
+    
+    if [ -z "$_OLD_MULTILEPTON_PYTHONPATH" ]; then
+        export _OLD_MULTILEPTON_PYTHONPATH="$PYTHONPATH"
+    fi
+    
+    # Set new PS1 with environment indicator
+    PS1="\[\033[1;35m\][multilepton_venv]\[\033[0m\] $PS1"
+    
+    # Create alias for deactivation
+    alias deactivate_multilepton='deactivate_multilepton'
 }
 
 multilepton_show_banner() {
@@ -199,19 +228,68 @@ multilepton_show_banner() {
 EOF
 }
 
+deactivate_multilepton() {
+    # Function to deactivate the multilepton environment
+    if [ -n "$_OLD_MULTILEPTON_PS1" ]; then
+        # Restore original PS1 exactly as it was
+        PS1="$_OLD_MULTILEPTON_PS1"
+        export PS1
+        unset _OLD_MULTILEPTON_PS1
+    else
+        # Fallback: remove the prefix if it exists
+        PS1='[\u@\h \W]$ ' # Default with last dir only
+        export PS1
+    fi
+    
+    # Unset key environment variables
+    unset MULTILEPTON_BASE
+    unset MULTILEPTON_SETUP
+    unset CF_SETUP_NAME
+    unset CF_BASE
+    
+    # Restore original PATH and PYTHONPATH if we saved them
+    if [ -n "$_OLD_MULTILEPTON_PATH" ]; then
+        export PATH="$_OLD_MULTILEPTON_PATH"
+        unset _OLD_MULTILEPTON_PATH
+    fi
+    
+    if [ -n "$_OLD_MULTILEPTON_PYTHONPATH" ]; then
+        export PYTHONPATH="$_OLD_MULTILEPTON_PYTHONPATH"
+        unset _OLD_MULTILEPTON_PYTHONPATH
+    fi
+    
+    # Also unset other CF_ variables that were set
+    unset CF_CONDA_BASE CF_VENV_BASE CF_CMSSW_BASE CF_MAMBA_BASE
+    unset CF_SOFTWARE_BASE CF_SCHEDULER_HOST CF_SCHEDULER_PORT
+    
+    echo "Multilepton environment deactivated"
+}
+
 main() {
-    # Invokes the main action of this script, catches possible error codes and prints a message.
+    if [[ -n "${MULTILEPTON_SETUP+x}" && "${MULTILEPTON_SETUP}" == "true" ]] && ! ${CF_ON_SLURM}; then
+        read -p "Multilepton environment is already active. Deactivate first? (y/n): " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            deactivate_multilepton
+            cf_color green "Please run setup again to reactivate ==> 'source setup.sh <setup_name> [sandbox_type]'"
+            return 0
+        else
+            cf_color yellow "Keeping current environment active"
+            return 0
+        fi
+    fi
+    
     # run the actual setup
     if setup_multilepton "$@"; then
         multilepton_show_banner
         cf_color green "HH -> Multilepton analysis successfully setup"
+        cf_color cyan "Use 'deactivate_multilepton' to exit the virtual environment"
         return "0"
     else
         local code="$?"
         cf_color red "HH -> Multilepton analysis setup failed with code ${code}"
         return "${code}"
     fi
-    
 }
 
 # entry point

@@ -19,6 +19,8 @@ from multilepton.config.configs_multilepton import add_config
 # Analysis Definition
 # =======================================
 analysis_multilepton = od.Analysis(name="analysis_multilepton", id=1)
+analysis_multilepton.x.get_dataset_lfns_cls = "ml.GetDatasetLFNs"
+analysis_multilepton.x.limit_dataset_files = -1  # Default: no limit
 
 # Use lookup from law.cfg
 analysis_multilepton.x.versions = {}
@@ -47,19 +49,17 @@ analysis_multilepton.x.hist_hooks = DotDict()
 add_blinding_hooks(analysis_multilepton)
 add_binning_hooks(analysis_multilepton)
 
+
 # =======================================
 # Lazy Config Factory Helper
 # =======================================
-
-
 def add_lazy_config(
     *,
     campaign_module: str,
     campaign_attr: str,
     config_name: str,
     config_id: int,
-    add_limited: bool = True,
-    limit_dataset_files: int | None = None,
+    add_limited: bool = False,
     **kwargs,
 ) -> None:
     """Register a lazily-created configuration into the multilepton analysis."""
@@ -67,36 +67,37 @@ def add_lazy_config(
     def create_factory(
         config_id: int,
         config_name_postfix: str = "",
-        limit_dataset_files_factory: int | None = None,
-        # limit_dataset_files: int | None = None,
     ):
-        def factory(configs: od.UniqueObjectIndex):
+        def factory(configs):
             mod = importlib.import_module(campaign_module)
             campaign = getattr(mod, campaign_attr)
-            # limit_dataset_files: int | None = None,
-            limit_files = limit_dataset_files_factory or limit_dataset_files
-            return add_config(
+            config = add_config(
                 analysis_multilepton,
                 campaign.copy(),
                 config_name=config_name + config_name_postfix,
                 config_id=config_id,
-                # limit_dataset_files=limit_dataset_files,
-                limit_dataset_files=limit_files,
                 **kwargs,
             )
+            # Apply limit from ANALYSIS level to this CONFIG
+            limit = analysis_multilepton.x.limit_dataset_files
+            if limit > 0:
+                print(f"[Config {config.name}] Applying limit_dataset_files={limit}")
+                for dataset in config.datasets:
+                    for info in dataset.info.values():
+                        # original = info.n_files
+                        info.n_files = min(info.n_files, limit)
+                        # if original != info.n_files:
+                        #    logger.warning(f"  Limited {dataset.name}: {original} → {info.n_files}")
+            return config
         return factory
 
-    # Add full configuration
     analysis_multilepton.configs.add_lazy_factory(config_name, create_factory(config_id))
 
-    # Optionally add a "_limited" version
     if add_limited:
         limited_name = f"{config_name}_limited"
-        if limited_name in analysis_multilepton.configs:
-            raise ValueError(f"Duplicate config name detected: {limited_name}")
         analysis_multilepton.configs.add_lazy_factory(
             limited_name,
-            create_factory(config_id + 200, "_limited", 1),
+            create_factory(config_id + 200, "_limited", 1),  # 1 here is hardcoded limit for "_limited"
         )
 
 

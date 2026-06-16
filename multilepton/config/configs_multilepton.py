@@ -155,8 +155,8 @@ def nested_dict():
 # https://btv-wiki.docs.cern.ch/ScaleFactors
 def bTagWorkingPoints(year, run, campaign):
     getfromyear = year
-    if year == 2024:
-        getfromyear = 2023  # still missing FIXME once they are updated by BTV-POG
+    # if year == 2024:
+    #    getfromyear = 2023  # still missing FIXME once they are updated by BTV-POG
     fileName = law.LocalFileTarget(localizePOGSF(getfromyear, "BTV", "btagging.json.gz"))
     logger.info(f"Getting btagging working points and discriminator cuts from : {fileName}")
     ceval = load_correction_set(fileName)
@@ -166,6 +166,8 @@ def bTagWorkingPoints(year, run, campaign):
         valid_eras = ["2016APV", "2016", "2017", "2018"]
     elif run == 3:
         taggers = ["deepJet", "particleNet", "robustParticleTransformer", "particleNetMD"]
+        if year == 2024:
+            taggers = ["UParTAK4"]
         valid_eras = ["2022", "2022EE", "2023", "2023BPix", "2024"]
     else:
         raise ValueError(f"Unsupported run: {run}")
@@ -243,7 +245,6 @@ def add_config(
     campaign: od.Campaign,
     config_name: str | None = None,
     config_id: int | None = None,
-    limit_dataset_files: int | None = None,
 ) -> od.Config:
 
     # gather campaign data
@@ -515,7 +516,7 @@ def add_config(
         cfg.x.jet_trigger_corrector = "jetleg60"
         return cfg
 
-    def ConfigureLFNS(cfg, limit_dataset_files=None):
+    def ConfigureLFNS(cfg):
         """
         Configure custom methods for retrieving dataset LFNs depending on campaign settings.
         """
@@ -671,12 +672,11 @@ def add_config(
     cfg.x.muon_mva_source = "custom"
 
     ConfigureLuminosity(cfg, campaign, year, analysis_data)
-    ConfigureLFNS(cfg, limit_dataset_files)
+    ConfigureLFNS(cfg)
     ConfigureTaus(cfg, run, campaign)
     ConfigureElectrons(cfg, run, year, campaign)
     ConfigureMuons(cfg, run, year, campaign)
     ConfigureJets(cfg, year, run, campaign)
-
     # =============================================
     # processes and datasets - using YAML configuration
     # =============================================
@@ -700,7 +700,7 @@ def add_config(
             dataset_names[dtype].append(dataset_name)
             process_names[dtype].append(proc)
             # Add tags to the process
-            if law.util.multi_match(dataset.name, [
+            if dataset.name.startswith("qcd_") or law.util.multi_match(dataset.name, [
                 r"^(ww|wz|zz)_.*pythia$",
                 r"^tt(w|z)_.*amcatnlo$",
             ]):
@@ -723,9 +723,6 @@ def add_config(
                 dataset.add_tag("partial_lhe_weights")
             for tag in (t for t in law.util.make_set(tags) if t is not None):
                 dataset.add_tag(tag)
-            if limit_dataset_files:
-                for info in dataset.info.values():
-                    info.n_files = min(info.n_files, limit_dataset_files)
 
     # Add data
     streams = datasets_config["data"]["streams"]
@@ -779,9 +776,6 @@ def add_config(
                     # https://cms-talk.web.cern.ch/t/noise-met-filters-in-run-3/63346/5
                     if y == 2022 and dataset.is_data and dataset.x.era in "FG":
                         dataset.add_tag("broken_ecalBadCalibFilter")
-                    if limit_dataset_files:
-                        for info in dataset.info.values():
-                            info.n_files = min(info.n_files, limit_dataset_files)
 
     # verify that the root process of each dataset is part of any of the registered processes
     verify_config_processes(cfg, warn=True)
@@ -924,6 +918,12 @@ def add_config(
             jec_sources=cfg.x.btag_sf_jec_sources,
             discriminator="btagPNetB",
         )
+        # add upart
+        # cfg.x.btag_sf_upartak4 = BTagSFConfig(
+        # correction_set="UParTAK4_shape",
+        # jec_sources=cfg.x.btag_sf_jec_sources,
+        # discriminator="btagUParTAK4B",
+        # )
 
     # =============================================
     # top pt reweighting
@@ -1014,6 +1014,7 @@ def add_config(
         register_shift_pair(cfg, f"jec_{jec_source}", jec_id, jec_aliases, {"jec"}, {"jec_source": jec_source})
 
         # link btag-related JEC sources
+        # add upart
         if ("" if jec_source == "Total" else jec_source) in cfg.x.btag_sf_jec_sources:
             btag_aliases = {
                 "normalized_btag_deepjet_weight": "normalized_btag_deepjet_weight_{name}",
@@ -1060,6 +1061,7 @@ def add_config(
         register_shift_pair(cfg, "eer", 94, {"Electron.pt": "Electron.pt_res_{direction}"}, {"eer"})
 
     # b-tag uncertainties
+    # add upart
     cfg.x.btag_unc_names = [
         "hf", "lf",
         f"hfstats1_{year}", f"hfstats2_{year}",

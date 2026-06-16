@@ -99,20 +99,6 @@ def patch_htcondor_workflow_naf_resources():
 
 
 @memoize
-def patch_slurm_partition_setting():
-    """
-    Patches the slurm remote workflow to allow setting things like partition
-    by commandline instead of overiding with central default.
-    """
-    from columnflow.tasks.framework.remote import RemoteWorkflow
-    RemoteWorkflow.exclude_params_branch.remove("slurm_partition")
-    RemoteWorkflow.slurm_partition.significant = True
-    RemoteWorkflow.exclude_params_branch.remove("slurm_flavor")
-    RemoteWorkflow.slurm_flavor._choices.add("manivald")
-    logger.debug(f"patched slurm partition/flavor settings of {RemoteWorkflow.task_family}")
-
-
-@memoize
 def patch_missing_xsec_handling():
     """
     Patches the normalization_weights_setup function in columnflow/production/normalization.py
@@ -153,11 +139,25 @@ def patch_missing_xsec_handling():
 
 
 @memoize
+def patch_slurm_partition_setting():
+    """
+    Patches the slurm remote workflow to allow setting things like partition
+    by commandline instead of overiding with central default.
+    """
+    from columnflow.tasks.framework.remote import RemoteWorkflow
+    RemoteWorkflow.exclude_params_branch.remove("slurm_partition")
+    RemoteWorkflow.slurm_partition.significant = True
+    RemoteWorkflow.exclude_params_branch.remove("slurm_flavor")
+    RemoteWorkflow.slurm_flavor._choices.add("manivald")
+    logger.debug(f"patched slurm partition/flavor settings of {RemoteWorkflow.task_family}")
+
+
+@memoize
 def patch_all():
     patch_bundle_repo_exclude_files()
     patch_remote_workflow_poll_interval()
     patch_slurm_partition_setting()
-    patch_merge_reduction_stats_inputs()
-    patch_columnar_pyarrow_version()
-    patch_missing_xsec_handling()
+    # patch_merge_reduction_stats_inputs()
+    # patch_columnar_pyarrow_version()
+    # patch_missing_xsec_handling()
     # patch_htcondor_workflow_naf_resources()

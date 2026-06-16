@@ -11,7 +11,7 @@ from columnflow.tasks.framework.base import BaseTask
 
 class MultileptonTask(BaseTask):
 
-    task_namespace = "multilepton"
+    task_namespace = "ml"
 
     # add a parameter that can be set on the command line
     limit_dataset_files = luigi.IntParameter(
