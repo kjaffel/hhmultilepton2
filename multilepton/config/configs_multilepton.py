@@ -143,7 +143,8 @@ def pogEraFormat(era):
 
 def localizePOGSF(era, POG, fileName):
     """Localize POG scale factor files."""
-    subdir = pogEraFormat(str(era))
+    era = str(era).replace("preEE", "").replace("preBPix", "").replace("post", "")
+    subdir = pogEraFormat(era)
     return os.path.join("/cvmfs/cms.cern.ch/rsync/cms-nanoAOD/jsonpog-integration", "POG", POG, subdir, fileName)
 
 
@@ -153,11 +154,9 @@ def nested_dict():
 
 
 # https://btv-wiki.docs.cern.ch/ScaleFactors
-def bTagWorkingPoints(year, run, campaign):
-    getfromyear = year
-    # if year == 2024:
-    #    getfromyear = 2023  # still missing FIXME once they are updated by BTV-POG
-    fileName = law.LocalFileTarget(localizePOGSF(getfromyear, "BTV", "btagging.json.gz"))
+def bTagWorkingPoints(era, run, campaign):
+    year = era[:4]
+    fileName = law.LocalFileTarget(localizePOGSF(era, "BTV", "btagging.json.gz"))
     logger.info(f"Getting btagging working points and discriminator cuts from : {fileName}")
     ceval = load_correction_set(fileName)
     btagging = nested_dict()
@@ -166,9 +165,9 @@ def bTagWorkingPoints(year, run, campaign):
         valid_eras = ["2016APV", "2016", "2017", "2018"]
     elif run == 3:
         taggers = ["deepJet", "particleNet", "robustParticleTransformer", "particleNetMD"]
-        if year == 2024:
+        if year == "2024":
             taggers = ["UParTAK4"]
-        valid_eras = ["2022", "2022EE", "2023", "2023BPix", "2024"]
+        valid_eras = ["2022", "2022EE", "2023", "2023BPix", "2024", "2025"]
     else:
         raise ValueError(f"Unsupported run: {run}")
 
@@ -250,7 +249,7 @@ def add_config(
     # gather campaign data
     run = campaign.x.run
     year = campaign.x.year
-
+    era = analysis_cfg.get_era(campaign)
     # --- basic configuration validations ---
     if run not in {2, 3}:
         raise ValueError(f"Invalid run: {run}. Expected 2 or 3.")
@@ -426,7 +425,7 @@ def add_config(
 
         newyear = year % 100
         jec_uncertainty_sources = analysis_data["jec_sources"]
-        
+
         if run == 2:
             jec_version_map = {2016: "V7", 2017: "V5", 2018: "V5"}
             jer_version_map = {2016: "V3", 2017: "V2", 2018: "V2"}
@@ -455,16 +454,16 @@ def add_config(
                 (2022, "EE"): "V2",  # soon "V4",
                 (2023, ""): "V2",  # soon "V4",
                 (2023, "BPix"): "V3",  # soon "V4",
-                (2024, ""): "V1", # soon "V3",
+                (2024, ""): "V1",  # soon "V3",
                 (2025, ""): "V3",
             }
             nibs_version = {
                 "C": 1,
                 "D": 1,
                 "E": 1,
-                #"F": 1,
+                # "F": 1,
                 "F": 2,
-                #"G": 1,
+                # "G": 1,
                 "G": 2,
                 "H": 1,
                 "I": 1,
@@ -478,31 +477,29 @@ def add_config(
                 (2023, ""): {"C": "RunCv123", "C4": "RunCv4"},
                 (2023, "BPix"): {"D": "RunD"},
                 (2024, ""): {p: f"Run{p}nib{nibs_version[p]}" for p in nibs_version},
-                (2025, ""): {},  # fill in when corrections are available
+                (2025, ""): {"C": "RunC", "D": "RunD", "E": "RunE", "F": "RunF", "G": "RunG"},
             }
             if not jerc_postfix:
                 raise ValueError(f"Unsupported JERC configuration for Run 3: year={year}, postfix={campaign.x.postfix}")  # noqa: E501
-            
-            if year == 2025: 
+
+            if year == 2025:
                 season = "Winter"
-            else: 
+            else:
                 season = "Summer"
-            
             jec_campaign = f"{season}{newyear}{campaign.x.postfix}{jerc_postfix}"
             jer_campaign = f"{season}{newyear}{campaign.x.postfix}{jerc_postfix}"
-            
+
             if year == 2025:
-                jer_campaign = jer_campaign.replace("Winter25", "Summer24") # preliminary file that's why
+                jer_campaign = jer_campaign.replace("Winter25", "Summer24")  # preliminary file that's why
             if year == 2023:
                 jer_campaign += f"_Run{'Cv1234' if campaign.has_tag('preBPix') else 'D'}"
             _era_map = jec_era_map.get((year, campaign.x.postfix), {})
             # Build inverse mapping: era string → list of run letters (for JER campaign suffix)
-            _first_era = next(iter(_era_map.values()), "RunCD") if _era_map else "RunCD"
             jecjerdb = {
                 "jec_campaign": jec_campaign,
                 "jec_version": jec_version_map[(year, campaign.x.postfix)],
                 "jec_era_map": _era_map,
-                "jer_campaign": jer_campaign + _first_era,
+                "jer_campaign": jer_campaign,
                 # soon "jer_version": "JR" + {2022: "V2", 2023: "V2", 2024: "V1", 2025: "V1"}[year],
                 "jer_version": "JR" + {2022: "V1", 2023: "V1", 2024: "V1", 2025: "V1"}[year],
                 "jet_type": "AK4PFPuppi",
@@ -513,7 +510,6 @@ def add_config(
             for src in ["TimeRunA", "TimeRunB", "TimeRunC", "TimeRunD"]:
                 if src in jec_uncertainty_sources:
                     jec_uncertainty_sources.remove(src)
-        
         cfg.x.jec = DotDict.wrap({
             "Jet": {
                 "campaign": jecjerdb["jec_campaign"],
@@ -700,7 +696,7 @@ def add_config(
     btagJECsources = analysis_data.get("btag_sf_jec_sources", [])
     btagJECsources += [f"Absolute_{year}", f"BBEC1_{year}", f"EC2_{year}", f"HF_{year}", f"RelativeSample_{year}", ""]
     cfg.x.btag_sf_jec_sources = btagJECsources
-    cfg.x.btag_working_points = bTagWorkingPoints(year, run, campaign)
+    cfg.x.btag_working_points = bTagWorkingPoints(era, run, campaign)
 
     cfg.x.jet_id_has_multiplicity = campaign.x.version >= 15
 
@@ -919,7 +915,6 @@ def add_config(
     stylize_processes(cfg, datasets_config)
     # Configure colors, labels, etc
     setup_plot_styles(cfg, analysis_data.get("plot_defaults", {}))
-   
 
     # =============================================
     # met settings
@@ -1003,8 +998,6 @@ def add_config(
     # dy reweighting and recoil
     # =============================================
     if run == 3:
-        era = analysis_cfg.get_era(campaign)
-
         # dy reweighting
         # https://cms-higgs-leprare.docs.cern.ch/htt-common/DY_reweight
         cfg.x.dy_weight_config = DrellYanConfig(
@@ -1177,41 +1170,40 @@ def add_config(
     normtagFile = analysis_data["years"][year]["normtag"]
 
     add_external("lumi", {"golden": (goldenFile, "v1"), "normtag": (normtagFile, "v1")})
-    add_external("jet_jerc", (localizePOGSF(year, "JME", "jet_jerc.json.gz"), "v1"))
-    add_external("jet_veto_map", (localizePOGSF(year, "JME", "jetvetomaps.json.gz"), "v1"))
-    add_external("muon_sf", (localizePOGSF(year, "MUO", "muon_Z.json.gz"), "v1"))
-    add_external("electron_sf", (localizePOGSF(year, "EGM", f"electron{ver}.json.gz"), "v1"))
+    add_external("jet_jerc", (localizePOGSF(era, "JME", "jet_jerc.json.gz"), "v1"))
+    add_external("jet_veto_map", (localizePOGSF(era, "JME", "jetvetomaps.json.gz"), "v1"))
+    add_external("muon_sf", (localizePOGSF(era, "MUO", "muon_Z.json.gz"), "v1"))
+    add_external("electron_sf", (localizePOGSF(era, "EGM", f"electron{ver}.json.gz"), "v1"))
+    add_external("btag_sf_corr", (localizePOGSF(era, "BTV", "btagging.json.gz"), "v1"))
 
-    getfromyear = year
+    getfromera = era
     if year == 2024:
-        getfromyear = 2023  # these corrections are still missing for 2024 workaround with 2023 preBPix for now
-        tau_pog_suffix = "preBPix"
+        getfromera = "2023preBPix"  # these corrections are still missing for 2024 workaround with 2023 preBPix for now
         add_external("met_phi_corr", (f"{os.path.dirname(os.path.abspath(__file__))}/../data/{metPOGJsonFile}", "v1"))
     else:
-        add_external("met_phi_corr", (localizePOGSF(getfromyear, "JME", f"{metPOGJsonFile}"), "v1"))
-    add_external("btag_sf_corr", (localizePOGSF(getfromyear, "BTV", "btagging.json.gz"), "v1"))
-    add_external("tau_sf", (localizePOGSF(getfromyear, "TAU", f"{tauPOGJsonFile}"), "v1"))
-    add_external("pu_sf", (localizePOGSF(getfromyear, "LUM", "puWeights.json.gz"), "v1"))
+        add_external("met_phi_corr", (localizePOGSF(getfromera, "JME", f"{metPOGJsonFile}"), "v1"))
+    add_external("tau_sf", (localizePOGSF(getfromera, "TAU", f"{tauPOGJsonFile}"), "v1"))
+    add_external("pu_sf", (localizePOGSF(getfromera, "LUM", "puWeights.json.gz"), "v1"))
     add_external("trigger_sf", Ext(
-        f"{os.path.dirname(os.path.abspath(__file__))}/../data/TriggerScaleFactors/{getfromyear}{tau_pog_suffix}",
+        f"{os.path.dirname(os.path.abspath(__file__))}/../data/TriggerScaleFactors/{getfromera}",
         subpaths=DotDict(
             muon="temporary_MuHlt_abseta_pt.json.gz",
             cross_muon="CrossMuTauHlt.json.gz",
             electron="electronHlt.json.gz",
             cross_electron="CrossEleTauHlt.json.gz",
-            tau=f"tau_trigger_DeepTau2018v2p5_{getfromyear}{tau_pog_suffix}.json.gz",
-            jet=f"ditaujet_jetleg60_{getfromyear}{tau_pog_suffix}.json.gz",
+            tau=f"tau_trigger_DeepTau2018v2p5_{getfromera}.json.gz",
+            jet=f"ditaujet_jetleg60_{getfromera}.json.gz",
         ),
         version="v1",
     ))
 
     # run specific files
     if run == 2:
-        add_external("tau_trigger_sf", (localizePOGSF(year, "TAU", "tau.json.gz"), "v1"))
+        add_external("tau_trigger_sf", (localizePOGSF(era, "TAU", "tau.json.gz"), "v1"))
     elif run == 3:
         # electron energy correction and smearing
-        add_external("electron_ss", (localizePOGSF(year, "EGM", f"electronSS_EtDependent{ver}.json.gz"), "v1"))
-        add_external("jet_id", (localizePOGSF(year, "JME", "jetid.json.gz"), "v1"))
+        add_external("electron_ss", (localizePOGSF(era, "EGM", f"electronSS_EtDependent{ver}.json.gz"), "v1"))
+        add_external("jet_id", (localizePOGSF(era, "JME", "jetid.json.gz"), "v1"))
 
     # =============================================
     # reductions

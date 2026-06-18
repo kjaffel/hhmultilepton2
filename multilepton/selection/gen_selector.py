@@ -13,7 +13,7 @@ from columnflow.selection import Selector, SelectionResult, selector
 from columnflow.columnar_util import set_ak_column, full_like
 from columnflow.util import maybe_import
 
-from multilepton.util import IF_NANO_V9, IF_NANO_GE_V10, IF_NANO_V12, IF_NANO_V14, IF_NANO_V15
+from multilepton.util import IF_NANO_V12, IF_NANO_V15
 
 np = maybe_import("numpy")
 ak = maybe_import("awkward")

@@ -28,14 +28,14 @@ ak = maybe_import("awkward")
 
 @selector(
     uses={
-        "fired_trigger_ids", 
+        "fired_trigger_ids",
         "TrigObj.{pt,eta,phi}",
-        "Jet.{pt,eta,phi,mass}", 
-        "FatJet.{pt,eta,phi,mass,msoftdrop,subJetIdx1,subJetIdx2}", 
+        "Jet.{pt,eta,phi,mass}",
+        "FatJet.{pt,eta,phi,mass,msoftdrop,subJetIdx1,subJetIdx2}",
         "SubJet.{pt,eta,phi,mass}",
-        jet_id, 
+        jet_id,
         fatjet_id,
-        IF_NOT_NANO_V15("SubJet.btagDeepB","FatJet.jetId","Jet.jetId"),
+        IF_NOT_NANO_V15("SubJet.btagDeepB", "FatJet.jetId", "Jet.jetId"),
         IF_RUN_2("Jet.puId"),
     },
     produces={
