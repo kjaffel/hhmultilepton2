@@ -2,31 +2,25 @@ stages:
   - lint
   - test
 
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+
 lint:
   stage: lint
   image: python:3.9
   script:
     - source setup.sh ""
     - ./tests/run_linting
+  tags:
+    - cvmfs
 
 analysis:
   stage: test
-  image: gitlab-registry.cern.ch/ci-tools/ci-worker:cc7
+  script:
+    - source setup.sh dev
+    - bash tests/run_analysis
   tags:
     - cvmfs
-  cache:
-    key: "$CI_COMMIT_REF_SLUG"
-    paths:
-      - data/software/
-  variables:
-    CF_CERN_USER: $GITLAB_USER_LOGIN
-    CF_DATA: "$CI_PROJECT_DIR/data"
-    CF_SOFTWARE_BASE: "$CI_PROJECT_DIR/data/software"
-    CF_STORE_LOCAL: "$CI_PROJECT_DIR/data/cf_store"
-    CF_FLAVOR: "cms"
-  script:
-    - source setup.sh ci full
-    - bash tests/run_analysis
   only:
     - merge_requests
     - main
