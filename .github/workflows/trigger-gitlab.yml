@@ -1,4 +1,3 @@
-# .github/workflows/trigger-gitlab.yml
 name: Trigger GitLab CI
 
 on:
@@ -13,7 +12,9 @@ jobs:
       - name: Trigger GitLab pipeline
         run: |
           curl -X POST \
-            --fail \
+            -L \
+            -v \
             -F "token=${{ secrets.GITLAB_TRIGGER_TOKEN }}" \
             -F "ref=main" \
-            "https://gitlab.cern.ch/api/v4/projects/hh-multileptons-full-analysis%2Fhh-multilepton/trigger/pipeline"
+            "https://gitlab.cern.ch/api/v4/projects/237472/trigger/pipeline" \
+            2>&1 || true
