@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+# Runs the same columnflow tasks as local development to catch regressions on PR.
+
+action() {
+    local shell_is_zsh="$( [ -z "${ZSH_VERSION}" ] && echo "false" || echo "true" )"
+    local this_file="$( ${shell_is_zsh} && echo "${(%):-%x}" || echo "${BASH_SOURCE[0]}" )"
+    local this_dir="$( cd "$( dirname "${this_file}" )" && pwd )"
+
+    local task="cf.SelectEvents"
+    local version="ci_test"
+    local workflow="local"
+    local failed=()
+
+    # Each entry: "config:dataset"
+    local tests=(
+        "22preEE_v12_central:data_mu_d"
+        "22preEE_v12_central:ttzz_madgraph"
+        "22postEE_v12_central:data_mu_f"
+        "22postEE_v12_central:ttzz_madgraph"
+        "23preBPix_v12_central:data_mu_c1"
+        "23preBPix_v12_central:ttzz_madgraph"
+        "23postBPix_v12_central:data_mu_d1"
+        "23postBPix_v12_central:ttzz_madgraph"
+        "24_v15_central:data_mu_d"
+        "24_v15_central:ttzz_madgraph"
+    )
+
+    for entry in "${tests[@]}"; do
+        local config="${entry%%:*}"
+        local dataset="${entry##*:}"
+
+        echo ""
+        echo "=== ${config} / ${dataset} ==="
+        law run "${task}" \
+            --config "${config}" \
+            --dataset "${dataset}" \
+            --workflow "${workflow}" \
+            --version "${version}" \
+            --selector default \
+            --limit-dataset-files 1 \
+            --retries 1 \
+            --clear-logs \
+            --cleanup-jobs
+
+        if [ "$?" != "0" ]; then
+            echo "FAILED: ${config} / ${dataset}"
+            failed+=("${config}/${dataset}")
+        else
+            echo "OK: ${config} / ${dataset}"
+        fi
+    done
+
+    echo ""
+    if [ "${#failed[@]}" -ne 0 ]; then
+        echo "Failed tests:"
+        for e in "${failed[@]}"; do echo "  - ${e}"; done
+        return 1
+    fi
+    echo "All tests passed."
+    return 0
+}
+action "$@"
