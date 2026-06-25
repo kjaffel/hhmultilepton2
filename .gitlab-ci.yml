@@ -24,3 +24,5 @@ analysis:
   only:
     - merge_requests
     - main
+    - triggers
+    - web
