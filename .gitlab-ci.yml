@@ -3,7 +3,7 @@ stages:
   - test
 
 variables:
-  GIT_SUBMODULE_STRATEGY: recursive
+  GIT_SUBMODULE_STRATEGY: none
 
 lint:
   stage: lint
@@ -17,6 +17,7 @@ lint:
 analysis:
   stage: test
   script:
+    - git submodule update --init --recursive modules/columnflow
     - source setup.sh dev
     - bash tests/run_analysis
   tags:
