@@ -106,19 +106,6 @@ def add_categories(config: od.Config) -> None:
     ]
     gen_matches = ["gen_nonfakes", "gen_fakes", "gen_conversions", "gen_flips"]
 
-    region_base_id = {
-        "cat2lSS0tauOS_SR": 21000,
-        "cat2lOS0tauSS_SR": 22000,
-        "cat2lSS1tauOS_SR": 23000,
-        "cat2lOS1tauSS_SR": 24000,
-        "cat1l2tau_SR": 25000,
-        "cat3l0tau_SR": 26000,
-        "cat4l_SR": 27000,
-        "cat3l1tau_SR": 28000,
-        "cat2l2tau_SR": 29000,
-        "cat1l3tau_SR": 31000,
-        "cat4tau_SR": 32000,
-    }
     gen_match_offset = {
         "gen_nonfakes": 1,
         "gen_fakes": 2,
@@ -132,7 +119,8 @@ def add_categories(config: od.Config) -> None:
     def kwargs_fn(root_cats):
         region_name = root_cats["region"].name
         gen_match_name = root_cats["gen_match"].name
-        cat_id = region_base_id[region_name] + gen_match_offset[gen_match_name]
+        cat = multileptons_categories[region_name]
+        cat_id = cat["id"] * 10 + gen_match_offset[gen_match_name]
         return {
             "id": cat_id,
             "label": ", ".join(cat.label for cat in root_cats.values()),
@@ -152,25 +140,3 @@ def add_categories(config: od.Config) -> None:
         **{region: [f"{region}_{gm}" for gm in gen_matches] for region in regions},
         **{gm: [f"{region}_{gm}" for region in regions] for gm in gen_matches},
     }
-
-# def add_categories(config: od.Config) -> None:
-#     """
-#     Adds all categories to a *config*.
-#     """
-#     # root category (-1 has special meaning in cutflow)
-#     root_cat = add_category(config, name="all", id=-1, selection="cat_all", label="")
-#     _add_category = functools.partial(add_category, parent=root_cat)
-
-#     # One category per existing channel
-#     for ch in config.channels:
-#         _add_category(config, name=ch.name, id=ch.id, selection=f"cat_{ch.name[1:]}", label=ch.label, tags=ch.name)
-#     # Analysis-specific multilepton categories
-#     for name, cat in multileptons_categories.items():
-#         _add_category(
-#             config,
-#             name=name,
-#             id=cat["id"],
-#             selection=cat["selection"],
-#             label=cat["label"],
-#             tags=cat.get("tags"),
-#         )

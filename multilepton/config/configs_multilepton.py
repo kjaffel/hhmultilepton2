@@ -245,6 +245,7 @@ def add_config(
     config_name: str | None = None,
     config_id: int | None = None,
     enable_gen_matching_studies: bool = False,
+    enable_hh_truth_studies: bool = False,
 ) -> od.Config:
 
     # gather campaign data
@@ -1409,6 +1410,10 @@ def add_config(
     # categories are only needed for dedicated gen-matching/fake studies, so they are skipped by
     # default to avoid slowing down every run; pass enable_gen_matching_studies=True to turn them on
     cfg.x.enable_gen_matching_studies = enable_gen_matching_studies
+    # opt-in flag: the HH truth selector (Higgs kinematics from GenPart) is only needed for
+    # dedicated HH-truth studies, so it is skipped by default; pass enable_hh_truth_studies=True
+    # to turn it on
+    cfg.x.enable_hh_truth_studies = enable_hh_truth_studies
     add_categories(cfg)
     add_variables(cfg)
     add_met_filters(cfg)
