@@ -145,7 +145,10 @@ def default(
     results += trigger_results
 
     # HH truth selector (find Higgs bosons) - INDEPENDENT, runs before lepton selection
-    if self.dataset_inst.is_mc:
+    # opt-in only: this classification (and its columns) is only needed for dedicated HH-truth
+    # studies, so it is skipped by default to avoid slowing down every run
+    if self.config_inst.x("enable_hh_truth_studies", False):
+        # run only on MC: for data, hh_truth_selector fills a neutral default step
         events, hh_results = self[hh_truth_selector](events, **kwargs)
         results += hh_results
 

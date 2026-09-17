@@ -111,13 +111,3 @@ for module, name, cid in datasets:
         config_name=name,
         config_id=cid,
     )
-    # dedicated gen-matching-studies variant of the same campaign: the extra columns/categories
-    # are only computed when this config is explicitly selected (--config <name>_genmatch),
-    # not on every default run of the plain config above
-    add_lazy_config(
-        campaign_module=module,
-        campaign_attr=f"campaign_{module.split('.')[-1]}",
-        config_name=f"{name}_genmatch",
-        config_id=cid + 1,
-        enable_gen_matching_studies=True,
-    )
