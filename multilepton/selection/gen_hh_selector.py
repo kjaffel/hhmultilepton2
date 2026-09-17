@@ -1,8 +1,11 @@
+# coding: utf-8
+
+import law
+
 from columnflow.selection import Selector, SelectionResult, selector
 from columnflow.columnar_util import set_ak_column, full_like
 from columnflow.util import maybe_import
-
-import law
+from multilepton.util import IF_MC
 
 np = maybe_import("numpy")
 ak = maybe_import("awkward")
@@ -11,7 +14,7 @@ logger = law.logger.get_logger(__name__)
 
 @selector(
     uses={
-        "GenPart.{pt,eta,phi,mass,pdgId,genPartIdxMother}",
+        IF_MC("GenPart.{pt,eta,phi,mass,pdgId,genPartIdxMother}"),
     },
     produces={
         "hh_decay_mode",
@@ -32,6 +35,11 @@ def hh_truth_selector(
 
     # Run only for MC
     if not self.dataset_inst.is_mc:
+        # data has no gen truth; still fill all declared columns with neutral defaults, otherwise
+        # the produces-check fails and downstream variables (mHH_gen, ptHH, ...) would be missing
+        events = set_ak_column(events, "hh_decay_mode", np.full(len(events), "data", dtype="U20"))
+        for col in ["mHH_gen", "ptHH", "ptH1", "ptH2", "acoplanarity", "costheta_star"]:
+            events = set_ak_column(events, col, full_like(events.event, -999.0, dtype=np.float32))
         return events, SelectionResult(
             steps={
                 "hh_truth": full_like(events.event, True, dtype=bool),

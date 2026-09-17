@@ -11,7 +11,7 @@ export MVA_FEATURE_DEBUG=1
 task=cf.CreateYieldTable
 #task=cf.PlotVariables1D
 
-version=test_4
+version=test_$(date +%Y-%m-%d)
 limit_dataset_files=1   # -1 to process all files
 parallel_jobs=300		
 workflow=local          # choices: local, slurm, htcondor
