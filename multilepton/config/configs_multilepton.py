@@ -244,7 +244,6 @@ def add_config(
     campaign: od.Campaign,
     config_name: str | None = None,
     config_id: int | None = None,
-    enable_gen_matching_studies: bool = False,
 ) -> od.Config:
 
     # gather campaign data
@@ -761,6 +760,15 @@ def add_config(
     cfg.x.external_files = DotDict()
     cfg.x.minbias_xs = Number(69.2, 0.046j)
     cfg.x.channel_names = analysis_data.get("channels", []).keys()
+
+    # opt-in flag: the gen-matching classification (nonfakes/fakes/conversions/flips) and its
+    # categories are only needed for dedicated gen-matching/fake studies, so they are skipped by
+    # default to avoid slowing down every run; pass enable_gen_matching_studies=True to turn them on
+    cfg.x.enable_gen_matching_studies = True
+    # opt-in flag: the HH truth selector (Higgs kinematics from GenPart) is only needed for
+    # dedicated HH-truth studies, so it is skipped by default;
+    # pass enable_hh_truth_studies=True to turn it on
+    cfg.x.enable_hh_truth_studies = True
 
     btagJECsources = analysis_data.get("btag_sf_jec_sources", [])
     btagJECsources += [f"Absolute_{year}", f"BBEC1_{year}", f"EC2_{year}", f"HF_{year}", f"RelativeSample_{year}", ""]
@@ -1405,10 +1413,6 @@ def add_config(
     # =============================================
     # add variables, categories , met and triggers
     # =============================================
-    # opt-in flag: the gen-matching classification (nonfakes/fakes/conversions/flips) and its
-    # categories are only needed for dedicated gen-matching/fake studies, so they are skipped by
-    # default to avoid slowing down every run; pass enable_gen_matching_studies=True to turn them on
-    cfg.x.enable_gen_matching_studies = enable_gen_matching_studies
     add_categories(cfg)
     add_variables(cfg)
     add_met_filters(cfg)
