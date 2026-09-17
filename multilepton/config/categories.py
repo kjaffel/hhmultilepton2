@@ -5,10 +5,9 @@ Definition of categories.
 """
 
 import functools
-
 import order as od
 
-from columnflow.config_util import add_category, create_category_combinations
+from columnflow.config_util import add_category, create_category_combinations, CategoryGroup
 
 
 multileptons_categories = {
@@ -78,11 +77,17 @@ def add_categories(config: od.Config) -> None:
     # opt-in only: the gen-matching classification and its categories are only needed for
     # dedicated gen-matching/fake studies (see enable_gen_matching_studies in configs_multilepton.py)
     gen_matching_enabled = config.x("enable_gen_matching_studies", False)
-    gen_match_category_names = {"gen_nonfakes", "gen_fakes", "gen_conversions", "gen_flips"}
+    signal_regions = [region for region in multileptons_categories.keys() if "SR" in region]
+    gen_matches = {
+        "gen_nonfakes": 1,
+        "gen_fakes": 2,
+        "gen_conversions": 3,
+        "gen_flips": 4,
+    }
 
     # analysis-specific multilepton categories
     for name, cat in multileptons_categories.items():
-        if name in gen_match_category_names and not gen_matching_enabled:
+        if name in gen_matches.keys() and not gen_matching_enabled:
             continue
         _add_category(
             config,
@@ -93,25 +98,11 @@ def add_categories(config: od.Config) -> None:
             tags=cat.get("tags"),
         )
 
-    if not gen_matching_enabled:
-        return
-
     # ------------------------------------------------------------------
     # combine SR regions with gen-match categories
     # ------------------------------------------------------------------
-    regions = [
-        "cat2lSS0tauOS_SR", "cat2lOS0tauSS_SR", "cat2lSS1tauOS_SR", "cat2lOS1tauSS_SR",
-        "cat1l2tau_SR", "cat3l0tau_SR", "cat4l_SR", "cat3l1tau_SR",
-        "cat2l2tau_SR", "cat1l3tau_SR", "cat4tau_SR",
-    ]
-    gen_matches = ["gen_nonfakes", "gen_fakes", "gen_conversions", "gen_flips"]
-
-    gen_match_offset = {
-        "gen_nonfakes": 1,
-        "gen_fakes": 2,
-        "gen_conversions": 3,
-        "gen_flips": 4,
-    }
+    if not gen_matching_enabled:
+        return
 
     def name_fn(root_cats):
         return "_".join(cat.name for cat in root_cats.values())
@@ -120,7 +111,7 @@ def add_categories(config: od.Config) -> None:
         region_name = root_cats["region"].name
         gen_match_name = root_cats["gen_match"].name
         cat = multileptons_categories[region_name]
-        cat_id = cat["id"] * 10 + gen_match_offset[gen_match_name]
+        cat_id = cat["id"] * 10 + gen_matches[gen_match_name]
         return {
             "id": cat_id,
             "label": ", ".join(cat.label for cat in root_cats.values()),
@@ -129,14 +120,23 @@ def add_categories(config: od.Config) -> None:
     create_category_combinations(
         config,
         {
-            "region": [config.get_category(n) for n in regions],
-            "gen_match": [config.get_category(n) for n in gen_matches],
+            "region": CategoryGroup(
+                categories=[config.get_category(n) for n in signal_regions],
+                is_complete=False,
+                has_overlap=False,
+            ),
+            # every event gets exactly one gen_match_category (see gen_selector.py) -> full partition
+            "gen_match": CategoryGroup(
+                categories=[config.get_category(n) for n in gen_matches.keys()],
+                is_complete=True,
+                has_overlap=False,
+            ),
         },
         name_fn=name_fn,
         kwargs_fn=kwargs_fn,
     )
 
     config.x.category_groups = {
-        **{region: [f"{region}_{gm}" for gm in gen_matches] for region in regions},
-        **{gm: [f"{region}_{gm}" for region in regions] for gm in gen_matches},
+        **{region: [f"{region}_{gm}" for gm in gen_matches.keys()] for region in signal_regions},
+        **{gm: [f"{region}_{gm}" for region in signal_regions] for gm in gen_matches.keys()},
     }
