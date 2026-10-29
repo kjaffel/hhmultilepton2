@@ -746,7 +746,7 @@ def add_config(
     # configure some default objects
     # =============================================
     TopPtWeightFromTheory = False
-    cfg.x.disable_triggers = True
+    cfg.x.disable_triggers = False
     cfg.x.default_selector_steps = "all"
     cfg.x.default_calibrator = "default"
     cfg.x.default_selector = "default"

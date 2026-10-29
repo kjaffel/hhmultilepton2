@@ -316,8 +316,6 @@ def default_setup(self: Selector, task: law.Task, **kwargs) -> None:
 
 # same as default, but selecting the fake factor measurement regions instead of the physics channels
 default_ffmr = default.derive("default_ffmr", cls_dict={"lepton_sel": lepton_selection_ffmr})
-
-
 empty = default.derive("empty", cls_dict={})
 
 

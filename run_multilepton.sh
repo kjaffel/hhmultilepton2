@@ -1,20 +1,20 @@
 #!/usr/bin/env bash
 
-export MVA_FEATURE_DEBUG=1
+export MVA_FEATURE_DEBUG=0
 #export MVA_ZERO_JETPTRELV2=1
 
 #task=cf.GetDatasetLFNs
 #task=cf.CalibrateEvents
-#task=cf.SelectEvents
+task=cf.SelectEvents
 #task=cf.ReduceEvents
 #task=cf.ProduceColumns
-task=cf.CreateYieldTable
+#task=cf.CreateYieldTable
 #task=cf.PlotVariables1D
 
-version=test_$(date +%Y-%m-%d)
-limit_dataset_files=1   # -1 to process all files
-parallel_jobs=300		
-workflow=local          # choices: local, slurm, htcondor
+version=prod6 #test_$(date +%Y-%m-%d)
+limit_dataset_files=-1   # -1 to process all files
+parallel_jobs=200		
+workflow=slurm           # choices: local, slurm, htcondor
 producers=default
 selector=default
 calibrators=default
@@ -24,16 +24,23 @@ variables=nmu
 
 #config=22preEE_v14_private
 #config=22postEE_v14_private
-config=23preBPix_v14_private
+#config=23preBPix_v14_private
 #config=23postBPix_v14_private
 #config=22preEE_v12_central
 #config=22postEE_v12_central
 #config=23preBPix_v12_central
 #config=23postBPix_v12_central
-#config=24_v15_central
+config=24_v15_central
 
 requested_datasets=(
-hh_ggf_htt_hvv_kl1_kt1_powheg
+wz_pythia
+tt_dl_powheg
+hh_ggf_hvv_hvv_2lplus_kl0_kt1_powheg
+hh_ggf_hvv_hvv_2lplus_kl1_kt1_powheg
+hh_ggf_hvv_hvv_2lplus_kl5_kt1_powheg
+dy_mumu_m50toinf_amcatnlo
+dy_ee_m50toinf_amcatnlo
+dy_tautau_m50toinf_amcatnlo
 )
 not_now_requested_datasets=(
 hh_ggf_htt_htt_kl1_kt1_powheg
@@ -94,10 +101,11 @@ for dataset in "${requested_datasets[@]}"; do
         --calibrators "${calibrators}" \
         --retries 1 \
         --workers 1 \
-        --clear-logs \
-        --cleanup-jobs \
         ${plus_args} \
-        "$@"
+        "$@" \
+        > "logs/v2/log_${task##*.}_${dataset}.log" 2>&1 &
+        #--clear-logs \
+        #--cleanup-jobs \
     set +x
 done
 

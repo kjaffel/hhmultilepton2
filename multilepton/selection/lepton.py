@@ -454,7 +454,8 @@ def electron_selection(
             (events.Electron.convVeto == 1) &
             (events.Electron.lostHits == 0) &
             atleast_loose &
-            (promptMVA > 0.3) &
+            # for manisha (promptMVA > 0.3) &
+            (promptMVA == 0.) &
             (btag_values < btagcut_tight)
         )
 
@@ -740,7 +741,8 @@ def muon_selection(
             (events.Muon.miniPFRelIso_all < 0.4) &
             atleast_medium &
             (btag_values < btagcut_tight) &
-            (promptMVA > 0.5)
+            #FIXME (promptMVA > 0.5)
+            (promptMVA == 0.)
         )
 
         cone_pt = get_cone_pt_from_jetidx(

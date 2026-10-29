@@ -334,15 +334,14 @@ datasets:
       cmsdb:
         - wz_pythia
         - ww_pythia
-## negligible  drop for now  
-#      - z_qq_1j_pt100to200_amcatnlo
-#      - z_qq1j_pt200to400_amcatnlo
-#      - z_qq1j_pt400to600_amcatnlo
-#      - z_qq1j_pt600toinf_amcatnlo
-#      - z_qq2j_pt100to200_amcatnlo
-#      - z_qq2j_pt200to400_amcatnlo
-#      - z_qq2j_pt400to600_amcatnlo
-#      - z_qq2j_pt600toinf_amcatnlo
+        - z_qq_1j_pt100to200_amcatnlo
+        - z_qq1j_pt200to400_amcatnlo
+        - z_qq1j_pt400to600_amcatnlo
+        - z_qq1j_pt600toinf_amcatnlo
+        - z_qq2j_pt100to200_amcatnlo
+        - z_qq2j_pt200to400_amcatnlo
+        - z_qq2j_pt400to600_amcatnlo
+        - z_qq2j_pt600toinf_amcatnlo
  
 external_files:
   pog: "/cvmfs/cms.cern.ch/rsync/cms-nanoAOD/jsonpog-integration/POG"
@@ -421,7 +420,7 @@ channels:
   c2mu2tau: 
     id: 29
     label: "$\\mu\\mu\\tau_{h}\\tau_{h}$"
-  # 1l3tau channles
+  # 1l3tau channels
   ce3tau: 
     id: 30
     label: "$e\\tau_{h}\\tau_{h}\\tau_{h}$"
@@ -477,7 +476,7 @@ plot_defaults:
   general:
     cms_label: "Work-in-progress"
     whitespace_fraction: 0.31
-  default_style: wide_legend
+  default_style: wide_legend  # see availables styles below 
   blinding_threshold: 0
   
   styles:
